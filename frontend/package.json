@@ -14,6 +14,7 @@
     "jwt-decode": "^4.0.0",
     "konva": "^9.3.18",
     "lottie": "^0.0.1",
+    "lucide-react": "^0.487.0",
     "mqtt": "^5.10.3",
     "react": "^19.0.0",
     "react-chartjs-2": "^5.2.0",

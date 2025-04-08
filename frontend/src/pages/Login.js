@@ -1,32 +1,39 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react"; // Tambah ikon
+import loginImage from "../Picture/logogamblinghub.png";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [pesan, setPesan] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // State untuk show/hide
 
   const handleLogin = (e) => {
     e.preventDefault();
 
-    // Simulasi validasi sederhana
-    if (!email || !username || !password) {
-      setPesan("❗ Semua field harus diisi.");
+    if (!email || !password) {
+      setPesan("Email dan password harus diisi.");
       return;
     }
 
     if (password.length < 6) {
-      setPesan("🔐 Password minimal 6 karakter.");
+      setPesan("Password Salah.");
       return;
     }
 
-    setPesan(`✅ Login berhasil! Selamat datang, ${username}.`);
+    setPesan(`Login berhasil! Selamat bermain.`);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 to-black text-white px-4">
       <div className="bg-black bg-opacity-70 p-8 rounded-3xl w-full max-w-md shadow-2xl border-4 border-indigo-600">
-        <h1 className="text-3xl font-bold mb-6 text-center text-indigo-300">🔐 Login Akun</h1>
+        
+        <img
+          src={loginImage}
+          alt="Login Icon"
+          className="mx-auto mb-6 w-18 h-24 object-contain"
+        />
 
         <form onSubmit={handleLogin} className="space-y-4">
           <input
@@ -36,20 +43,22 @@ const LoginPage = () => {
             onChange={(e) => setEmail(e.target.value)}
             className="w-full p-3 rounded-xl text-black text-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />
-          <input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="w-full p-3 rounded-xl text-black text-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 rounded-xl text-black text-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          />
+
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-3 pr-12 rounded-xl text-black text-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
+            <div
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute top-1/2 right-4 transform -translate-y-1/2 cursor-pointer text-indigo-600"
+            >
+              {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+            </div>
+          </div>
 
           <button
             type="submit"
@@ -62,6 +71,20 @@ const LoginPage = () => {
         {pesan && (
           <div className="mt-4 text-indigo-200 text-center text-sm">{pesan}</div>
         )}
+
+        <div className="mt-6 text-center text-sm text-indigo-300">
+          Auto Dashboard{" "}
+          <Link to=".Pemain/Dashboard" className="text-indigo-400 underline hover:text-indigo-200">
+            Daftar di sini
+          </Link>
+        </div>
+
+        <div className="mt-6 text-center text-sm text-indigo-300">
+          Belum punya akun?{" "}
+          <Link to="./Register" className="text-indigo-400 underline hover:text-indigo-200">
+            Daftar di sini
+          </Link>
+        </div>
       </div>
     </div>
   );
