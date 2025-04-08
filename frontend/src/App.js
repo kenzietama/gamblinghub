@@ -28,7 +28,7 @@ function App() {
 
         {/* Pemain */}
         <Route path="/main-menu" element={<MainMenu />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/Dashboard" element={<Dashboard />} />
         <Route path="/top-up" element={<TopUp />} />
         <Route path="/profil" element={<Profil />} />
 

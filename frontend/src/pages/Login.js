@@ -1,13 +1,14 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react"; // Tambah ikon
-import loginImage from "../Picture/logogamblinghub.png";
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
+import loginImage from "../Picture/logogamblinghub.png"; // pastikan path-nya benar
 
-const LoginPage = () => {
+const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pesan, setPesan] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // State untuk show/hide
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -22,13 +23,15 @@ const LoginPage = () => {
       return;
     }
 
-    setPesan(`Login berhasil! Selamat bermain.`);
+    setPesan("Login berhasil! Selamat bermain.");
+    setTimeout(() => {
+      navigate("/dashboard");
+    }, 1000);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-900 to-black text-white px-4">
       <div className="bg-black bg-opacity-70 p-8 rounded-3xl w-full max-w-md shadow-2xl border-4 border-indigo-600">
-        
         <img
           src={loginImage}
           alt="Login Icon"
@@ -73,15 +76,8 @@ const LoginPage = () => {
         )}
 
         <div className="mt-6 text-center text-sm text-indigo-300">
-          Auto Dashboard{" "}
-          <Link to=".Pemain/Dashboard" className="text-indigo-400 underline hover:text-indigo-200">
-            Daftar di sini
-          </Link>
-        </div>
-
-        <div className="mt-6 text-center text-sm text-indigo-300">
           Belum punya akun?{" "}
-          <Link to="./Register" className="text-indigo-400 underline hover:text-indigo-200">
+          <Link to="/register" className="text-indigo-400 underline hover:text-indigo-200">
             Daftar di sini
           </Link>
         </div>
@@ -90,4 +86,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default Login;
