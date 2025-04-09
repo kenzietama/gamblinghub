@@ -33,9 +33,6 @@ const MainMenu = () => {
   ];
 
   return (
-    <>
-      <Navbar />
-
       <div className="min-h-screen bg-gradient-to-br from-indigo-900 to-black text-white px-6 py-12">
         <div className="max-w-5xl mx-auto space-y-12">
           <div className="text-center">
@@ -57,7 +54,6 @@ const MainMenu = () => {
           </div>
         </div>
       </div>
-    </>
   );
 };
 

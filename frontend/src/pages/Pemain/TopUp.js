@@ -27,9 +27,6 @@ const TopUp = () => {
   ];
 
   return (
-    <>
-      <Navbar />
-
       <div className="min-h-screen bg-gradient-to-br from-indigo-900 to-black text-white px-6 py-12 space-y-16">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-center text-4xl font-bold mb-4">
@@ -63,7 +60,6 @@ const TopUp = () => {
           </div>
         </div>
       </div>
-    </>
   );
 };
 

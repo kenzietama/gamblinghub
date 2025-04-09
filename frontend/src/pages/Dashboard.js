@@ -43,9 +43,6 @@ const negaraList = [
 
 const Dashboard = () => {
   return (
-    <>
-      <Navbar />
-
       <div className="min-h-screen bg-gradient-to-br from-indigo-900 to-black text-white px-6 py-12 space-y-16">
 
         {/* Section: Logo dan Pengenalan */}
@@ -109,9 +106,6 @@ const Dashboard = () => {
           ))}
         </section>
       </div>
-
-      <Footer />
-    </>
   );
 };
 

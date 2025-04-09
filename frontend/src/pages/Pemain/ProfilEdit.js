@@ -33,9 +33,6 @@ const ProfileEdit = () => {
   };
 
   return (
-    <>
-      <Navbar />
-
       <div className="min-h-screen bg-gradient-to-br from-indigo-900 to-black text-white px-6 py-12">
         <div className="max-w-2xl mx-auto bg-[#1e1a18] rounded-2xl shadow-lg p-10">
           <h1 className="text-3xl font-bold text-center mb-8">Edit Profil</h1>
@@ -102,7 +99,6 @@ const ProfileEdit = () => {
           </form>
         </div>
       </div>
-    </>
   );
 };
 
