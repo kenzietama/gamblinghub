@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import MainMenu from "./pages/Pemain/MainMenu";
 import TopUp from "./pages/Pemain/TopUp";
 import Profil from "./pages/Pemain/Profil";
+import ProfilEdit from "./pages/Pemain/ProfilEdit";
 
 // Games
 import JackpotGame from "./pages/Games/JackpotGame";
@@ -33,6 +34,7 @@ function App() {
         <Route path="/main-menu" element={<MainMenu />} />
         <Route path="/top-up" element={<TopUp />} />
         <Route path="/profil" element={<Profil />} />
+        <Route path="/profiledit" element={<ProfilEdit />} />
 
         {/* Games */}
         <Route path="/jackpot" element={<JackpotGame />} />
