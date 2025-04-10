@@ -18,6 +18,10 @@ import TopUp from "./pages/Pemain/TopUp";
 import Profil from "./pages/Pemain/Profil";
 import ProfilEdit from "./pages/Pemain/ProfilEdit";
 
+// Sisi Admin
+import DaftarPemain from "./pages/Admin/DaftarPemain";
+import DetailPemain from "./pages/Admin/DetailPemain";
+
 // Games
 import JackpotGame from "./pages/Games/JackpotGame";
 import TebakAngka from "./pages/Games/TebakAngka";
@@ -82,6 +86,10 @@ function App() {
                                 <Route path="/top-up" element={<TopUp />} />
                                 <Route path="/profil" element={<Profil />} />
                                 <Route path="/profiledit" element={<ProfilEdit />} />
+
+                                {/* Admin */}
+                                <Route path="daftarpemain" element={<DaftarPemain/>} />
+                                <Route path="/admin/pemain/:userId" element={<DetailPemain />} />
 
                                 {/* Games */}
                                 <Route path="/jackpot" element={<JackpotGame />} />

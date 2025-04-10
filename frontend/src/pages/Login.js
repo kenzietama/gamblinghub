@@ -80,6 +80,14 @@ const Login = () => {
                 "Login"
             )}
           </button>
+
+          <button
+            onClick={() => navigate("/")}
+            className="w-full bg-red-600 hover:bg-indigo-500 transition py-3 text-xl font-bold rounded-xl"
+          >
+            Kembali
+          </button>
+
         </form>
         <div className="mt-6 text-center text-sm text-indigo-300">
           Belum punya akun?{" "}

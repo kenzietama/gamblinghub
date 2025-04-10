@@ -5,8 +5,6 @@ import {useAuthStore} from "../store/useAuthStore";
 
 const Navbar = () => {
   // Contoh data sementara, nanti bisa diganti dari state/auth
-  const username = "pemain123";
-  const saldo = 15000;
   const navigate = useNavigate();
   const {authUser, logout} = useAuthStore();
 
@@ -55,6 +53,7 @@ const Navbar = () => {
             <Link to="/main-menu" className="hover:text-indigo-400 transition">Games</Link>
             <Link to="/top-up" className="hover:text-indigo-400 transition">Top Up</Link>
             <Link to="/profil" className="hover:text-indigo-400 transition">Profil</Link>
+            <Link to="/daftarpemain" className="hover:text-indigo-400 transition">Daftar Pemain</Link>
             <button
                 onClick={handleLogout}
                 className="bg-red-600 hover:bg-red-500 text-white px-4 py-1.5 rounded-lg transition"
@@ -82,8 +81,10 @@ const Navbar = () => {
 
           {/* Menu */}
           <div className="flex items-center space-x-6 text-base font-semibold">
-            <Link to="/" className="hover:text-indigo-400 transition">Home</Link>
+            <Link to="/" className="hover:text-indigo-400 transition">Dashboard</Link>
             <Link to="/main-menu" className="hover:text-indigo-400 transition">Games</Link>
+            <Link to="/top-up" className="hover:text-indigo-400 transition">Top Up</Link>
+            <Link to="/profil" className="hover:text-indigo-400 transition">Profil</Link>
             <Link
                 to="/login"
                 className="bg-blue-600 hover:bg-red-500 text-white px-4 py-1.5 rounded-lg transition"
