@@ -1,33 +1,47 @@
 // pages/Dadu.js
 import React, { useState } from "react";
+import { motion } from "framer-motion";
 
 const Dadu = () => {
   const [saldo, setSaldo] = useState(100);
   const [dadu1, setDadu1] = useState(1);
   const [dadu2, setDadu2] = useState(1);
   const [pesan, setPesan] = useState("");
+  const [rolling, setRolling] = useState(false);
 
   const rollDadu = () => {
-    if (saldo < 10) return;
+    if (saldo < 10 || rolling) return;
 
-    const hasil1 = Math.floor(Math.random() * 6) + 1;
-    const hasil2 = Math.floor(Math.random() * 6) + 1;
-    const total = hasil1 + hasil2;
+    setRolling(true);
+    setPesan("🎲 Melempar dadu...");
 
-    setDadu1(hasil1);
-    setDadu2(hasil2);
+    let count = 0;
+    const interval = setInterval(() => {
+      const random1 = Math.floor(Math.random() * 6) + 1;
+      const random2 = Math.floor(Math.random() * 6) + 1;
+      setDadu1(random1);
+      setDadu2(random2);
+      count++;
 
-    if (total > 8) {
-      setSaldo((s) => s + 30);
-      setPesan(`🎉 Total ${total}! Kamu menang +30 koin!`);
-    } else {
-      setSaldo((s) => s - 10);
-      setPesan(`💥 Total ${total}. Kurang dari 9, kamu kalah -10 koin.`);
-    }
+      if (count >= 10) {
+        clearInterval(interval);
+        const total = random1 + random2;
+
+        if (total > 8) {
+          setSaldo((s) => s + 30);
+          setPesan(`🎉 Total ${total}! Kamu menang +30 koin!`);
+        } else {
+          setSaldo((s) => s - 10);
+          setPesan(`💥 Total ${total}. Kurang dari atau sama dengan 8, kamu kalah -10 koin.`);
+        }
+
+        setRolling(false);
+      }
+    }, 100);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-800 to-black text-white p-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 to-black text-white p-6">
       <div className="bg-black bg-opacity-80 rounded-3xl p-8 w-full max-w-md border-4 border-purple-400 shadow-2xl text-center">
         <h1 className="text-3xl font-bold text-purple-300 mb-4">🎲 Lempar Dadu</h1>
 
@@ -35,24 +49,53 @@ const Dadu = () => {
           Saldo: <span className="font-semibold">💰 {saldo} koin</span>
         </div>
 
-        <div className="flex justify-center gap-8 text-5xl mb-6">
-          <div>🎲 {dadu1}</div>
-          <div>🎲 {dadu2}</div>
+        <div className="flex justify-center gap-8 text-6xl mb-6">
+          <motion.div
+            key={dadu1}
+            initial={{ rotate: 0, scale: 1 }}
+            animate={{
+              rotate: rolling ? 360 : 0,
+              scale: rolling ? 1.2 : 1,
+            }}
+            transition={{ duration: 0.3 }}
+          >
+            🎲 {dadu1}
+          </motion.div>
+          <motion.div
+            key={dadu2}
+            initial={{ rotate: 0, scale: 1 }}
+            animate={{
+              rotate: rolling ? 360 : 0,
+              scale: rolling ? 1.2 : 1,
+            }}
+            transition={{ duration: 0.3 }}
+          >
+            🎲 {dadu2}
+          </motion.div>
         </div>
 
         <button
           onClick={rollDadu}
-          disabled={saldo < 10}
-          className={`w-full py-3 rounded-xl font-bold text-white text-xl ${
-            saldo < 10
+          disabled={saldo < 10 || rolling}
+          className={`w-full py-3 rounded-xl font-bold text-white text-xl transition-all ${
+            saldo < 10 || rolling
               ? "bg-gray-600 cursor-not-allowed"
-              : "bg-purple-600 hover:bg-purple-500"
+              : "bg-purple-600 hover:bg-purple-500 hover:scale-105"
           }`}
         >
-          🎲 Lempar Dadu!
+          {rolling ? "🎲 Melempar..." : "🎯 Lempar Dadu (10 koin)"}
         </button>
 
         {pesan && <div className="mt-4 text-purple-200 text-lg">{pesan}</div>}
+
+        <div className="mt-6 text-sm text-purple-300 bg-purple-800 bg-opacity-30 p-4 rounded-xl border border-purple-500">
+          <h2 className="font-semibold mb-2 underline">📜 Aturan Main:</h2>
+          <ul className="list-disc text-left ml-6 space-y-1">
+            <li>Setiap lemparan memotong 10 koin dari saldo.</li>
+            <li>Jika jumlah dadu lebih dari 8, kamu menang dan dapat +30 koin.</li>
+            <li>Jika total 8 atau kurang, kamu kalah dan saldo tetap berkurang 10 koin.</li>
+          </ul>
+        </div>
       </div>
     </div>
   );

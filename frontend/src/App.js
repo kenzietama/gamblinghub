@@ -25,7 +25,7 @@ import DetailPemain from "./pages/Admin/DetailPemain";
 // Games
 import JackpotGame from "./pages/Games/JackpotGame";
 import TebakAngka from "./pages/Games/TebakAngka";
-import SuitJepang from "./pages/Games/SuitJepang";
+import Blackjack from "./pages/Games/Blackjack";
 import Dadu from "./pages/Games/Dadu";
 import {setLogoutFunction, setRefreshingTokenFunction} from "./lib/axios";
 import Navbar from "./components/navbar";
@@ -94,7 +94,7 @@ function App() {
                                 {/* Games */}
                                 <Route path="/jackpot" element={<JackpotGame />} />
                                 <Route path="/tebak-angka" element={<TebakAngka />} />
-                                <Route path="/suit-jepang" element={<SuitJepang />} />
+                                <Route path="/blackjack" element={<Blackjack />} />
                                 <Route path="/dadu" element={<Dadu />} />
                             </Routes>
                             <Footer />
