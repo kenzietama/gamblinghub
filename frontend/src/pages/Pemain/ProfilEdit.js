@@ -1,15 +1,16 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../../components/navbar";
-import { Eye, EyeOff } from "lucide-react"; // pastikan lucide-react sudah terinstall
+import { Eye, EyeOff } from "lucide-react";
+import {useAuthStore} from "../../store/useAuthStore"; // pastikan lucide-react sudah terinstall
 
 const ProfileEdit = () => {
   const navigate = useNavigate();
+  const {authUser} = useAuthStore()
 
   const [formData, setFormData] = useState({
-    email: "pemain123@gmail.com",
-    username: "pemain123",
-    password: "********",
+    email: authUser.email,
+    username: authUser.username,
+    password: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);

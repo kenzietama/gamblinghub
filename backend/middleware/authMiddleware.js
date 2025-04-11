@@ -11,7 +11,7 @@ const protectRoute = (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        const sql = "SELECT username FROM user WHERE email = ?";
+        const sql = "SELECT id, username, email, saldo, role  FROM user WHERE email = ?";
         db.query(sql, [decoded.email], (err, results) => {
             if (err) {
                 console.error("Database error in auth middleware:", err);

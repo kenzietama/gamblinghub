@@ -71,5 +71,26 @@ export const useAuthStore = create((set, get) => ({
                 toast.error(error.response?.data?.message || "Logout failed");
             }
         }
+    },
+
+    deleteAccount: async ({navigate, id} = {}) => {
+        const {authUser} = get();
+        const target = id || authUser?.id
+        try {
+            // No need to pass ID - the server already knows the user from the JWT
+            await axiosInstance.delete('/auth/user/'+target);
+
+            // Clear auth state
+            set({authUser: null});
+
+            toast.success("Akun Anda telah dihapus. Semoga tobatnya diterima. 😇");
+
+            if (navigate) {
+                navigate("/");
+            }
+        } catch (error) {
+            console.error("Delete account error:", error);
+            toast.error(error.response?.data?.message || "Gagal menghapus akun");
+        }
     }
 }))

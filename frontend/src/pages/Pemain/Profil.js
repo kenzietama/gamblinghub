@@ -1,27 +1,22 @@
 import React from "react";
-import Navbar from "../../components/navbar";
 import { useNavigate } from "react-router-dom";
+import {useAuthStore} from "../../store/useAuthStore";
 
 const Profil = () => {
   const navigate = useNavigate();
-
-  const user = {
-    email: "pemain123@gmail.com",
-    username: "pemain123",
-    password: "********",
-    saldo: 25000,
-  };
+  const {deleteAccount, logout, authUser} = useAuthStore()
 
   const handleLogout = () => {
-    alert("Anda telah logout.");
-    navigate("/login");
+    logout({ showToast: true });
+    setTimeout(() => {
+      navigate("/");
+    }, 50);
   };
 
-  const handleTobat = () => {
+  const handleTobat = async () => {
     const konfirmasi = window.confirm("Apakah Anda yakin ingin menghapus akun Anda? Ini tidak bisa dibatalkan!");
     if (konfirmasi) {
-      alert("Akun Anda telah dihapus. Semoga tobatnya diterima. 😇");
-      navigate("/login");
+      await deleteAccount({navigate});
     }
   };
 
@@ -37,22 +32,17 @@ const Profil = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-gray-300">
             <div className="bg-[#2a2523] p-5 rounded-xl shadow-inner border border-yellow-900">
               <p className="text-sm uppercase tracking-widest text-gray-400">Email</p>
-              <p className="text-lg font-semibold text-white">{user.email}</p>
+              <p className="text-lg font-semibold text-white">{authUser.email}</p>
             </div>
 
             <div className="bg-[#2a2523] p-5 rounded-xl shadow-inner border border-yellow-900">
               <p className="text-sm uppercase tracking-widest text-gray-400">Username</p>
-              <p className="text-lg font-semibold text-white">{user.username}</p>
-            </div>
-
-            <div className="bg-[#2a2523] p-5 rounded-xl shadow-inner border border-yellow-900">
-              <p className="text-sm uppercase tracking-widest text-gray-400">Password</p>
-              <p className="text-lg font-semibold text-white">{user.password}</p>
+              <p className="text-lg font-semibold text-white">{authUser.username}</p>
             </div>
 
             <div className="bg-[#2a2523] p-5 rounded-xl shadow-inner border border-yellow-900">
               <p className="text-sm uppercase tracking-widest text-gray-400">Saldo</p>
-              <p className="text-xl font-bold text-green-400">Rp {user.saldo.toLocaleString()}</p>
+              <p className="text-xl font-bold text-green-400">Rp {authUser.saldo?.toLocaleString() || "0"}</p>
             </div>
           </div>
 

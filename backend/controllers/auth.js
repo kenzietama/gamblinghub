@@ -201,10 +201,89 @@ const refresh = (req, res) => {
     }
 };
 
+const deleteUser = async (req, res) => {
+    const userId = req.params.id;
+
+    // Optional: Check if the user being deleted is the authenticated user
+    // or if the authenticated user has admin privileges
+    if (req.user.id !== parseInt(userId) && req.user.role !== 1) {
+        return res.status(403).json({ message: "Forbidden: You don't have permission to delete this user" });
+    }
+
+    try {
+        // Begin transaction for safer deletion
+        db.getConnection((err, connection) => {
+            if (err) {
+                console.error("Connection error:", err);
+                return res.status(500).json({ message: "Database connection error" });
+            }
+
+            // Begin transaction on the specific connection
+            connection.beginTransaction(err => {
+                if (err) {
+                    connection.release();
+                    console.error("Transaction error:", err);
+                    return res.status(500).json({ message: "Database error" });
+                }
+
+                // Delete the user
+                const sql = "DELETE FROM user WHERE id = ?";
+                connection.query(sql, [userId], (err, result) => {
+                    if (err) {
+                        return connection.rollback(() => {
+                            connection.release();
+                            console.error("Delete error:", err);
+                            res.status(500).json({ message: "Failed to delete user" });
+                        });
+                    }
+
+                    if (result.affectedRows === 0) {
+                        return connection.rollback(() => {
+                            connection.release();
+                            res.status(404).json({ message: "User not found" });
+                        });
+                    }
+
+                    // Commit the transaction
+                    connection.commit(err => {
+                        if (err) {
+                            return connection.rollback(() => {
+                                connection.release();
+                                console.error("Commit error:", err);
+                                res.status(500).json({ message: "Transaction failed" });
+                            });
+                        }
+
+                        // Release the connection back to the pool
+                        connection.release();
+
+                        // Clear auth cookies if user deleted themselves
+                        if (req.user.id === parseInt(userId)) {
+                            res.clearCookie('accessToken');
+                            res.clearCookie('refreshToken');
+                        }
+
+                        res.status(200).json({
+                            message: "User deleted successfully",
+                            deleted: true
+                        });
+                    });
+                });
+            });
+        });
+    } catch (error) {
+        console.error("Error in deleteUser:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+
+
 module.exports = {
     login,
     register,
     logout,
     checkAuth,
-    refresh
+    refresh,
+    deleteUser
 }

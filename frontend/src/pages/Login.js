@@ -82,6 +82,7 @@ const Login = () => {
           </button>
 
           <button
+              type="button"
             onClick={() => navigate("/")}
             className="w-full bg-red-600 hover:bg-indigo-500 transition py-3 text-xl font-bold rounded-xl"
           >
