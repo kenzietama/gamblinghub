@@ -9,6 +9,7 @@ export const useAuthStore = create((set, get) => ({
     isRegistering: null,
     isCheckingAuth: false,
     isRefreshingToken: false,
+    isUpdatingProfile: false,
 
     setRefreshingToken: (status) => {
         set({isRefreshingToken: status});
@@ -91,6 +92,21 @@ export const useAuthStore = create((set, get) => ({
         } catch (error) {
             console.error("Delete account error:", error);
             toast.error(error.response?.data?.message || "Gagal menghapus akun");
+        }
+    },
+
+    updateProfile: async (data, navigate) => {
+        set({isUpdatingProfile: true});
+        try {
+            const res = await axiosInstance.put("/auth/user", data);
+            get().checkAuth(); // Refresh auth state
+            toast.success("Profil berhasil diperbarui!");
+            navigate("/profil");
+        } catch (error) {
+            set({errorMessage: error.response.data.message});
+            toast.error(error.response?.data?.message || "Gagal memperbarui profil");
+        } finally {
+            set({isUpdatingProfile: false});
         }
     }
 }))

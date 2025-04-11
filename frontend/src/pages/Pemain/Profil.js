@@ -6,13 +6,6 @@ const Profil = () => {
   const navigate = useNavigate();
   const {deleteAccount, logout, authUser} = useAuthStore()
 
-  const handleLogout = () => {
-    logout({ showToast: true });
-    setTimeout(() => {
-      navigate("/");
-    }, 50);
-  };
-
   const handleTobat = async () => {
     const konfirmasi = window.confirm("Apakah Anda yakin ingin menghapus akun Anda? Ini tidak bisa dibatalkan!");
     if (konfirmasi) {
@@ -47,12 +40,6 @@ const Profil = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row justify-between mt-10 gap-4">
-            <button
-              onClick={handleLogout}
-              className="bg-red-600 hover:bg-red-500 px-6 py-3 rounded-xl text-white font-semibold transition"
-            >
-              Logout
-            </button>
 
             <button
               onClick={handleEditProfile}

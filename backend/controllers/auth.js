@@ -277,6 +277,96 @@ const deleteUser = async (req, res) => {
     }
 };
 
+const updateProfile = async (req, res) => {
+    const {username, email} = req.body;
+    const userId = req.user.id;
+    let user;
+
+    try {
+        const checkSql = "SELECT * FROM user WHERE email = ? OR username = ?";
+        db.query(checkSql, [email, username], (err, results) => {
+            if (err) {
+                return res.status(500).json({message: "Database error during registration"});
+            }
+
+            if (results && results.length > 0) {
+                // Check if both email and username match
+                const emailExists = results.some(user => user.email === email);
+                const usernameExists = results.some(user => user.username === username);
+
+                if (emailExists && usernameExists && (username !== results[0].username || email !== results[0].email)) {
+                    return res.status(409).json({message: "Akun sudah ada."});
+                } else if (emailExists && email !== results[0].email) {
+                    return res.status(409).json({message: "Email sudah digunakan."});
+                } else if (usernameExists && username !== results[0].username) {
+                    return res.status(409).json({message: "Username sudah digunakan."});
+                }
+            }
+            user = results[0];
+        })
+
+        const sql = "UPDATE user SET username = ?, email = ? WHERE id = ?";
+        db.query(sql, [username, email, userId], (err, result) => {
+            if (err) {
+                console.error("Database error during profile update:", err);
+                return res.status(500).json({ message: "Failed to update profile" });
+            }
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            res.clearCookie('accessToken');
+            res.clearCookie('refreshToken', {
+                path: '/api/auth/refresh' // Clear the refresh token cookie
+            })
+
+            const token = jwt.sign(
+                {
+                    userId: user.id,
+                    email: email,
+                    username: username,
+                    saldo: user.saldo,
+                    role: user.role || 'user',
+                },
+                process.env.JWT_SECRET,
+                { expiresIn: 60 * 60 * 6 } // 1 hour
+            );
+
+            const refreshToken = jwt.sign(
+                {
+                    userId: user.id,
+                    email: email,
+                    username: username,
+                    role: user.role || 'user',
+                },
+                process.env.REFRESH_TOKEN_SECRET,
+                { expiresIn: 60 * 60 * 24 * 7 } // 7 days
+            );
+
+            res.cookie('accessToken', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV !== 'development',
+                sameSite: 'strict',
+                maxAge: 60 * 60 * 1000
+            });
+
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV !== 'development',
+                sameSite: 'strict',
+                path: '/api/auth/refresh',
+                maxAge: 60 * 60 * 24 * 7 * 1000
+            });
+
+            res.status(200).json({ message: "Profile updated successfully" });
+        });
+    } catch (error) {
+        console.error("Unexpected error in updateProfile:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
 
 
 module.exports = {
@@ -285,5 +375,6 @@ module.exports = {
     logout,
     checkAuth,
     refresh,
-    deleteUser
+    deleteUser,
+    updateProfile
 }
