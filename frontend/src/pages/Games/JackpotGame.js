@@ -18,7 +18,7 @@ const JackpotGame = () => {
 
     setTimeout(() => {
       let gulungan;
-      const isJackpot = Math.random() < 0.9; // 🎯 90% kesempatan menang
+      const isJackpot = Math.random() < 0.1; // 10% chance
 
       if (isJackpot) {
         const simbol = simbolJackpot[Math.floor(Math.random() * simbolJackpot.length)];
@@ -45,34 +45,24 @@ const JackpotGame = () => {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black text-white"
-      style={{
-        backgroundImage:
-          "url('https://cdn.pixabay.com/photo/2017/08/30/07/52/slot-machine-2690292_1280.jpg')",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
-    >
-      <div className="bg-black bg-opacity-80 p-8 rounded-3xl shadow-2xl w-full max-w-md border-4 border-yellow-500 text-center backdrop-blur">
-        <h1 className="text-4xl font-extrabold text-yellow-400 mb-6 glow-text drop-shadow-xl">
-          🎰 JACKPOT MACHINE
-        </h1>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 to-black text-white p-6">
+      <div className="bg-[#1e1a18] rounded-2xl shadow-2xl p-10 max-w-xl w-full border border-yellow-900">
+        <h1 className="text-4xl font-bold text-yellow-400 text-center mb-8 drop-shadow-lg">🎰 Jackpot Game</h1>
 
-        <div className="flex justify-between mb-4 text-yellow-300 font-semibold">
+        <div className="flex justify-between mb-4 text-yellow-300 font-medium">
           <span>Saldo:</span>
-          <span className="font-bold">💰 {saldo} koin</span>
+          <span className="text-yellow-200 font-bold">💰 {saldo} koin</span>
         </div>
 
-        <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 flex justify-center items-center gap-4 mb-6 shadow-inner border-2 border-yellow-400">
+        <div className="flex justify-center gap-6 mb-8">
           {hasil.map((simbol, index) => (
             <motion.div
               key={index}
-              className="bg-white rounded-2xl w-20 h-20 flex items-center justify-center text-4xl shadow-xl border-4 border-yellow-400"
-              animate={{ rotate: spinning ? 360 : 0 }}
-              transition={{ duration: 0.5 }}
+              className="bg-gradient-to-br from-yellow-100 to-yellow-300 text-5xl w-24 h-24 rounded-2xl flex items-center justify-center border-4 border-yellow-500 shadow-2xl ring-2 ring-yellow-300"
+              animate={{ rotate: spinning ? 1080 : 0 }}
+              transition={{ duration: 1, ease: "easeInOut" }}
             >
-              {simbol}
+              <span className="drop-shadow-md">{simbol}</span>
             </motion.div>
           ))}
         </div>
@@ -80,7 +70,7 @@ const JackpotGame = () => {
         <button
           onClick={spin}
           disabled={saldo < 10 || spinning}
-          className={`w-full py-3 rounded-xl font-bold text-white transition-all text-xl tracking-wide ${
+          className={`w-full py-3 rounded-xl text-xl font-semibold transition-all ${
             saldo < 10 || spinning
               ? "bg-gray-600 cursor-not-allowed"
               : "bg-yellow-500 hover:bg-yellow-400 hover:scale-105"
@@ -90,7 +80,7 @@ const JackpotGame = () => {
         </button>
 
         {pesan && (
-          <div className="mt-4 text-yellow-200 text-lg font-medium">{pesan}</div>
+          <div className="mt-4 text-yellow-100 text-center font-medium">{pesan}</div>
         )}
       </div>
     </div>

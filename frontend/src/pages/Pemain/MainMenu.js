@@ -1,6 +1,5 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../../components/navbar";
 
 const MainMenu = () => {
   const navigate = useNavigate();
@@ -36,7 +35,7 @@ const MainMenu = () => {
       <div className="min-h-screen bg-gradient-to-br from-indigo-900 to-black text-white px-6 py-12">
         <div className="max-w-5xl mx-auto space-y-12">
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-yellow-400 mb-4">🎮 Menu Permainan</h1>
+            <h1 className="text-4xl font-bold mb-4">Menu Permainan</h1>
             <p className="text-gray-300">Pilih permainan favoritmu dan raih kemenangan besar!</p>
           </div>
 
