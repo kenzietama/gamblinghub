@@ -69,8 +69,11 @@ const login = (req, res) => {
                     });
 
                     res.status(200).json({
+                        id: user.id,
+                        username: user.username,
                         email: user.email,
-                        username: user.username
+                        saldo: user.saldo,
+                        role: user.role
                     });
                 } catch (jwtError) {
                     console.error("JWT error:", jwtError);

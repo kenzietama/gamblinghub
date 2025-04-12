@@ -1,5 +1,5 @@
 // App.js
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import {Routes, Route, useLocation, Navigate} from "react-router-dom";
 import {Toaster} from "react-hot-toast";
 import {useAuthStore} from "./store/useAuthStore";
@@ -35,6 +35,8 @@ import EditPassword from "./pages/Pemain/EditPassword";
 
 function App() {
     const {authUser, checkAuth, isCheckingAuth, logout, setRefreshingToken} = useAuthStore();
+    const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+    const location = useLocation();
 
     useEffect(() => {
         setLogoutFunction(logout);
@@ -45,13 +47,14 @@ function App() {
         const checkAuthStatus = async () => {
             // Increase timeout to avoid race conditions with token refresh
             await new Promise(resolve => setTimeout(resolve, 10));
-            checkAuth();
+            await checkAuth();
+            setInitialLoadComplete(true);
         };
 
         checkAuthStatus();
     }, [checkAuth]);
 
-    if(isCheckingAuth && !authUser) return (
+    if(!initialLoadComplete) return (
         <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-indigo-900 to-black text-white px-6 py-12 space-y-16">
             <Loader className="size-10 animate-spin"/>
         </div>
@@ -72,8 +75,12 @@ function App() {
                     )
                 } />
                 {/* Auth */}
-                <Route path="/login" element={!authUser ? <Login /> : <Navigate to="/dashboard" />} />
-                <Route path="/register" element={!authUser ? <Register /> : <Navigate to="/dashboard" />} />
+                <Route path="/login" element={
+                    !authUser ? <Login /> : <Navigate to={location.state?.from?.pathname || "/dashboard"} />
+                } />
+                <Route path="/register" element={
+                    !authUser ? <Register /> : <Navigate to={location.state?.from?.pathname || "/dashboard"} />
+                } />
 
                 {/* Protected routes - with navbar */}
                 <Route path="/*" element={
