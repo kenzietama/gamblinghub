@@ -19,14 +19,20 @@ import Profil from "./pages/Pemain/Profil";
 import ProfilEdit from "./pages/Pemain/ProfilEdit";
 
 // Sisi Admin
+import MainMenuAdmin from "./pages/Admin/MainMenuAdmin";
 import DaftarPemain from "./pages/Admin/DaftarPemain";
 import DetailPemain from "./pages/Admin/DetailPemain";
 
-// Games
+// Games Sisi Admin
+import JackpotGameAdmin from "./pages/Games/JackpotGameAdmin";
+import TebakAngkaAdmin from "./pages/Games/TebakAngkaAdmin";
+
+// Games Sisi Pemain
 import JackpotGame from "./pages/Games/JackpotGame";
 import TebakAngka from "./pages/Games/TebakAngka";
 import Blackjack from "./pages/Games/Blackjack";
 import Dadu from "./pages/Games/Dadu";
+
 import {setLogoutFunction, setRefreshingTokenFunction} from "./lib/axios";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
@@ -97,10 +103,14 @@ function App() {
                                 <Route path="/ubahpassword" element={<EditPassword />} />
 
                                 {/* Admin */}
-                                <Route path="daftarpemain" element={<DaftarPemain/>} />
+                                <Route path="/main-menu-admin" element={<MainMenuAdmin />} />
+                                <Route path="/daftarpemain" element={<DaftarPemain/>} />
                                 <Route path="/admin/pemain/:userId" element={<DetailPemain />} />
 
                                 {/* Games */}
+                                <Route path="/jackpotadmin" element={<JackpotGameAdmin />} />
+                                <Route path="/tebak-angkaadmin" element={<TebakAngkaAdmin />} />
+                                
                                 <Route path="/jackpot" element={<JackpotGame />} />
                                 <Route path="/tebak-angka" element={<TebakAngka />} />
                                 <Route path="/blackjack" element={<Blackjack />} />

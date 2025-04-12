@@ -53,9 +53,15 @@ const Navbar = () => {
             <Link to="/main-menu" className="hover:text-indigo-400 transition">Games</Link>
             <Link to="/top-up" className="hover:text-indigo-400 transition">Top Up</Link>
             <Link to="/profil" className="hover:text-indigo-400 transition">Profil</Link>
-              {Number(authUser?.role) === 1 && (
-                  <Link to="/daftarpemain" className="hover:text-indigo-400 transition">Daftar Pemain</Link>
-              )}
+<<<<<<< HEAD
+
+            <Link to="/main-menu-admin" className="hover:text-indigo-400 transition">Games Admin</Link>
+            <Link to="/daftarpemain" className="hover:text-indigo-400 transition">Daftar Pemain</Link>
+=======
+              {authUser.role === 1 ? (
+                <Link to="/daftarpemain" className="hover:text-indigo-400 transition">Daftar Pemain</Link>
+              ) : null
+              }
 
             <button
                 onClick={handleLogout}
