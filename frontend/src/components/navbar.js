@@ -53,6 +53,8 @@ const Navbar = () => {
             <Link to="/main-menu" className="hover:text-indigo-400 transition">Games</Link>
             <Link to="/top-up" className="hover:text-indigo-400 transition">Top Up</Link>
             <Link to="/profil" className="hover:text-indigo-400 transition">Profil</Link>
+
+            <Link to="/main-menu-admin" className="hover:text-indigo-400 transition">Games Admin</Link>
             <Link to="/daftarpemain" className="hover:text-indigo-400 transition">Daftar Pemain</Link>
             <button
                 onClick={handleLogout}
