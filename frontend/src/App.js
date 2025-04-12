@@ -37,6 +37,7 @@ import {setLogoutFunction, setRefreshingTokenFunction} from "./lib/axios";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
 import Home from "./pages/Home";
+import EditPassword from "./pages/Pemain/EditPassword";
 
 function App() {
     const {authUser, checkAuth, isCheckingAuth, logout, setRefreshingToken} = useAuthStore();
@@ -92,6 +93,7 @@ function App() {
                                 <Route path="/top-up" element={<TopUp />} />
                                 <Route path="/profil" element={<Profil />} />
                                 <Route path="/profiledit" element={<ProfilEdit />} />
+                                <Route path="/ubahpassword" element={<EditPassword />} />
 
                                 {/* Admin */}
                                 <Route path="/main-menu-admin" element={<MainMenuAdmin />} />

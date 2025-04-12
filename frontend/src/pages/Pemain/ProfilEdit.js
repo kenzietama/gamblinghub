@@ -1,18 +1,20 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../../components/navbar";
-import { Eye, EyeOff } from "lucide-react"; // pastikan lucide-react sudah terinstall
+import {Eye, EyeOff, Loader2} from "lucide-react";
+import {useAuthStore} from "../../store/useAuthStore"; // pastikan lucide-react sudah terinstall
 
 const ProfileEdit = () => {
   const navigate = useNavigate();
+  const {authUser, updateProfile, isUpdatingProfile} = useAuthStore()
 
   const [formData, setFormData] = useState({
-    email: "pemain123@gmail.com",
-    username: "pemain123",
-    password: "********",
+    email: authUser.email,
+    username: authUser.username,
+    password: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
+  const [changePassword, setChangePassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,10 +28,14 @@ const ProfileEdit = () => {
     setShowPassword((prev) => !prev);
   };
 
-  const handleSave = (e) => {
+  const toggleChangePassword = () => {
+      setChangePassword(prev => !prev);
+  }
+
+  const handleSave = async (e) => {
     e.preventDefault();
-    alert("Profil berhasil diperbarui!");
-    navigate("/profil");
+
+    await updateProfile(formData, navigate)
   };
 
   return (
@@ -61,31 +67,33 @@ const ProfileEdit = () => {
             </div>
 
             <div>
-              <label className="block mb-1 text-sm text-gray-400">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="w-full p-3 pr-12 rounded-xl bg-[#2a2523] text-white border border-yellow-800 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                />
-                <button
-                  type="button"
-                  onClick={toggleShowPassword}
-                  className="absolute top-1/2 right-4 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                >
-                  {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => navigate("/ubahpassword")}
+                className="text-blue-600 hover:text-blue-400 py-3 rounded-xl font-semibold transition w-full sm:w-auto"
+              >
+                Ubah Password
+              </button>
             </div>
 
             <div className="flex flex-col sm:flex-row justify-between gap-4 pt-6">
               <button
                 type="submit"
-                className="bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 rounded-xl font-semibold transition w-full sm:w-auto"
+                disabled={
+                    !formData.email ||
+                    !formData.username ||
+                    (formData.email === authUser.email && formData.username === authUser.username)
+                }
+                className="bg-yellow-400 hover:bg-yellow-300 disabled:bg-yellow-900 text-black px-6 py-3 rounded-xl font-semibold transition w-full sm:w-auto"
               >
-                Simpan Perubahan
+                {isUpdatingProfile ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <span>Loading...</span>
+                    </div>
+                ) : (
+                    "Simpan Perubahan"
+                )}
               </button>
 
               <button
