@@ -98,7 +98,7 @@ export const useAuthStore = create((set, get) => ({
     updateProfile: async (data, navigate) => {
         set({isUpdatingProfile: true});
         try {
-            const res = await axiosInstance.put("/auth/user", data);
+            const res = await axiosInstance.put("/auth/user/profile", data);
             get().checkAuth(); // Refresh auth state
             toast.success("Profil berhasil diperbarui!");
             navigate("/profil");
@@ -108,5 +108,19 @@ export const useAuthStore = create((set, get) => ({
         } finally {
             set({isUpdatingProfile: false});
         }
-    }
+    },
+
+    updatePassword: async (data, navigate) => {
+        set({isUpdatingProfile: true});
+        try {
+            await axiosInstance.put("/auth/user/password", data);
+            toast.success("Password berhasil diperbarui!");
+            navigate("/profil");
+        } catch (error) {
+            set({errorMessage: error.response.data.message});
+            toast.error(error.response?.data?.message || "Gagal memperbarui password");
+        } finally {
+            set({isUpdatingProfile: false});
+        }
+    },
 }))

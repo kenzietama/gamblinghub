@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
-import {useAuthStore} from "../../store/useAuthStore"; // pastikan lucide-react sudah terinstall
+import {Eye, EyeOff, Loader2} from "lucide-react";
+import {useAuthStore} from "../../store/useAuthStore";
+import toast from "react-hot-toast"; // pastikan lucide-react sudah terinstall
 
 const EditPassword = () => {
     const navigate = useNavigate();
+
+    const {authUser, updatePassword, isUpdatingProfile} = useAuthStore();
 
     const [formData, setFormData] = useState({
         password: "",
@@ -13,6 +16,18 @@ const EditPassword = () => {
 
     const [showPassword1, setShowPassword1] = useState(false);
     const [showPassword2, setShowPassword2] = useState(false);
+
+    const validateForm = () => {
+        if (!formData.password || !formData.newPassword) {
+            return toast.error("Semua field harus diisi.");
+        }
+
+        if (formData.newPassword.length < 8) {
+            return toast.error("Password minimal 8 karakter.");
+        }
+
+        return true;
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -30,10 +45,12 @@ const EditPassword = () => {
         setShowPassword2((prev) => !prev);
     };
 
-    const handleSave = (e) => {
+    const handleSave = async (e) => {
         e.preventDefault();
-        alert("Profil berhasil diperbarui!");
-        navigate("/profil");
+        const clear = validateForm();
+        if (clear === true) {
+            await updatePassword(formData, navigate);
+        }
     };
 
     return (
@@ -87,8 +104,14 @@ const EditPassword = () => {
                             type="submit"
                             className="bg-yellow-400 hover:bg-yellow-300 text-black px-6 py-3 rounded-xl font-semibold transition w-full sm:w-auto"
                         >
-                            Simpan Perubahan
-                        </button>
+                            {isUpdatingProfile ? (
+                                <div className="flex items-center justify-center gap-2">
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                    <span>Loading...</span>
+                                </div>
+                            ) : (
+                                "Simpan Perubahan"
+                            )}                        </button>
 
                         <button
                             type="button"

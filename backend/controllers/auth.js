@@ -280,7 +280,7 @@ const deleteUser = async (req, res) => {
 const updateProfile = async (req, res) => {
     const {username, email} = req.body;
     const userId = req.user.id;
-    let user;
+    const user = req.user;
 
     try {
         const checkSql = "SELECT * FROM user WHERE email = ? OR username = ?";
@@ -302,7 +302,6 @@ const updateProfile = async (req, res) => {
                     return res.status(409).json({message: "Username sudah digunakan."});
                 }
             }
-            user = results[0];
         })
 
         const sql = "UPDATE user SET username = ?, email = ? WHERE id = ?";
@@ -368,6 +367,59 @@ const updateProfile = async (req, res) => {
 }
 
 
+const updatePassword = async (req, res) => {
+    try {
+        const {password, newPassword} = req.body;
+        const id = req.user.id;
+
+        if (!password || !newPassword) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+
+        const sql = "SELECT * FROM user WHERE id = ?";
+        db.query(sql, [id], (err, results) => {
+            if (err) {
+                console.error("Database error during update password:", err);
+                return res.status(500).json({ message: "Update Password failed" });
+            }
+
+            if (!results || results.length === 0) {
+                return res.status(401).json({ message: "Invalid credentials" });
+            }
+
+            const user = results[0];
+
+            try {
+                const isPasswordCorrect = bcrypt.compareSync(String(password), user.password);
+                if (!isPasswordCorrect) {
+                    return res.status(401).json({ message: "Password lama salah." });
+                }
+
+                const hashedPassword = bcrypt.hashSync(String(newPassword), 10);
+                const sql = "UPDATE user SET password = ? WHERE id = ?";
+                db.query(sql, [hashedPassword, id], (err, result) => {
+                    if (err) {
+                        console.error("Database error during password update:", err);
+                        return res.status(500).json({ message: "Failed to update password" });
+                    }
+
+                    if (result.affectedRows === 0) {
+                        return res.status(404).json({ message: "User not found" });
+                    }
+
+                    res.status(200).json({ message: "Password updated successfully" });
+                });
+            } catch (e) {
+                console.error("error updating password:", e);
+                return res.status(500).json({ message: "Authentication error" });
+            }
+        });
+    } catch (error) {
+        console.error("Unexpected error in login:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
 
 module.exports = {
     login,
@@ -376,5 +428,6 @@ module.exports = {
     checkAuth,
     refresh,
     deleteUser,
-    updateProfile
+    updateProfile,
+    updatePassword
 }

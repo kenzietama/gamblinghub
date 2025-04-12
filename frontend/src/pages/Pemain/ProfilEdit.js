@@ -93,7 +93,8 @@ const ProfileEdit = () => {
                     </div>
                 ) : (
                     "Simpan Perubahan"
-                )}              </button>
+                )}
+              </button>
 
               <button
                 type="button"
