@@ -79,7 +79,7 @@ export const useAuthStore = create((set, get) => ({
         const target = id || authUser?.id
         try {
             // No need to pass ID - the server already knows the user from the JWT
-            await axiosInstance.delete('/auth/user/'+target);
+            await axiosInstance.delete('/user/'+target);
 
             // Clear auth state
             set({authUser: null});
@@ -98,7 +98,7 @@ export const useAuthStore = create((set, get) => ({
     updateProfile: async (data, navigate) => {
         set({isUpdatingProfile: true});
         try {
-            const res = await axiosInstance.put("/auth/user/profile", data);
+            const res = await axiosInstance.put("/user/profile", data);
             get().checkAuth(); // Refresh auth state
             toast.success("Profil berhasil diperbarui!");
             navigate("/profil");
@@ -113,7 +113,7 @@ export const useAuthStore = create((set, get) => ({
     updatePassword: async (data, navigate) => {
         set({isUpdatingProfile: true});
         try {
-            await axiosInstance.put("/auth/user/password", data);
+            await axiosInstance.put("/user/password", data);
             toast.success("Password berhasil diperbarui!");
             navigate("/profil");
         } catch (error) {

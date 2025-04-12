@@ -49,17 +49,22 @@ const Navbar = () => {
 
           {/* Menu */}
           <div className="flex items-center space-x-6 text-base font-semibold">
-            <Link to="/dashboard" className="hover:text-indigo-400 transition">Dashboard</Link>
-            <Link to="/main-menu" className="hover:text-indigo-400 transition">Games</Link>
-            <Link to="/top-up" className="hover:text-indigo-400 transition">Top Up</Link>
-            <Link to="/profil" className="hover:text-indigo-400 transition">Profil</Link>
-            <Link to="/main-menu-admin" className="hover:text-indigo-400 transition">Games Admin</Link>
-            <Link to="/daftarpemain" className="hover:text-indigo-400 transition">Daftar Pemain</Link>
               {authUser.role === 1 ? (
-                <Link to="/daftarpemain" className="hover:text-indigo-400 transition">Daftar Pemain</Link>
-              ) : null
+                  <>
+                      <Link to="/dashboard" className="hover:text-indigo-400 transition">Dashboard</Link>
+                      <Link to="/main-menu-admin" className="hover:text-indigo-400 transition">Games Admin</Link>
+                      <Link to="/profil" className="hover:text-indigo-400 transition">Profil</Link>
+                      <Link to="/daftarpemain" className="hover:text-indigo-400 transition">Daftar Pemain</Link>
+                  </>
+              ) : (
+                  <>
+                      <Link to="/dashboard" className="hover:text-indigo-400 transition">Dashboard</Link>
+                      <Link to="/main-menu" className="hover:text-indigo-400 transition">Games</Link>
+                      <Link to="/top-up" className="hover:text-indigo-400 transition">Top Up</Link>
+                      <Link to="/profil" className="hover:text-indigo-400 transition">Profil</Link>
+                  </>
+              )
               }
-
             <button
                 onClick={handleLogout}
                 className="bg-red-600 hover:bg-red-500 text-white px-4 py-1.5 rounded-lg transition"

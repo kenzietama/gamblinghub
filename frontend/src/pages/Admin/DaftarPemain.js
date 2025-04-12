@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { Link } from "react-router-dom";
+import {useDataStore} from "../../store/useDataStore";
+import {Loader} from "lucide-react";
 
 const dummyPemain = [
   { email: "andi@mail.com", username: "andigame", saldo: 250000 },
@@ -14,6 +16,12 @@ const DaftarPemain = () => {
   const [sortKey, setSortKey] = useState("username");
   const [sortAsc, setSortAsc] = useState(true);
 
+  const {getUsers, users, isLoading} = useDataStore()
+
+  useEffect(() => {
+    getUsers();
+  }, [getUsers]);
+
   const handleSort = (key) => {
     if (sortKey === key) {
       setSortAsc(!sortAsc);
@@ -23,21 +31,30 @@ const DaftarPemain = () => {
     }
   };
 
-  const filteredPlayers = dummyPemain
-    .filter(
-      (p) =>
-        p.username.toLowerCase().includes(search.toLowerCase()) ||
-        p.email.toLowerCase().includes(search.toLowerCase())
-    )
-    .sort((a, b) => {
-      if (sortKey === "saldo") {
-        return sortAsc ? a.saldo - b.saldo : b.saldo - a.saldo;
-      } else {
-        return sortAsc
-          ? a[sortKey].localeCompare(b[sortKey])
-          : b[sortKey].localeCompare(a[sortKey]);
-      }
-    });
+  const filteredPlayers = users && users.length > 0
+      ? users
+          .filter(p =>
+              (p.username?.toLowerCase().includes(search.toLowerCase()) ||
+                  p.email?.toLowerCase().includes(search.toLowerCase()))
+          )
+          .sort((a, b) => {
+            if (sortKey === "saldo") {
+              return sortAsc
+                  ? Number(a.saldo || 0) - Number(b.saldo || 0)
+                  : Number(b.saldo || 0) - Number(a.saldo || 0);
+            } else {
+              return sortAsc
+                  ? (a[sortKey] || "").localeCompare(b[sortKey] || "")
+                  : (b[sortKey] || "").localeCompare(a[sortKey] || "");
+            }
+          })
+      : [];
+
+  if(isLoading) return (
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-indigo-900 to-black text-white px-6 py-12 space-y-16">
+        <Loader className="size-10 animate-spin"/>
+      </div>
+  )
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
@@ -83,28 +100,32 @@ const DaftarPemain = () => {
           <tbody>
             {filteredPlayers.length > 0 ? (
               filteredPlayers.map((pemain, idx) => (
-                <tr
-                  key={idx}
-                  className="odd:bg-gray-700 even:bg-gray-800 hover:bg-indigo-900"
-                >
-                  <td className="p-3 align-middle">{pemain.email}</td>
-                  <td className="p-3 align-middle">{pemain.username}</td>
-                  <td className="p-3 align-middle">{pemain.saldo.toLocaleString()} koin</td>
-                  <td className="p-3 text-center">
-                    <Link
-                      to={`/admin/pemain/${pemain.username}`}
-                      className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded text-sm"
-                    >
-                      Detail
-                    </Link>
-                  </td>
-                </tr>
+                  <tr
+                      key={idx}
+                      className="odd:bg-gray-700 even:bg-gray-800 hover:bg-indigo-900"
+                  >
+                    <td className="p-3 align-middle">{pemain.email}</td>
+                    <td className="p-3 align-middle">{pemain.username}</td>
+                    <td className="p-3 align-middle">
+                      {pemain.saldo !== null && pemain.saldo !== undefined
+                          ? Number(pemain.saldo).toLocaleString() + ' koin'
+                          : '0 koin'}
+                    </td>
+                    <td className="p-3 text-center">
+                      <Link
+                          to={`/admin/pemain/${pemain.id}`}
+                          className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded text-sm"
+                      >
+                        Detail
+                      </Link>
+                    </td>
+                  </tr>
               ))
             ) : (
-              <tr>
-                <td
-                  colSpan="4"
-                  className="p-4 text-center text-indigo-300 italic"
+                <tr>
+                  <td
+                      colSpan="4"
+                      className="p-4 text-center text-indigo-300 italic"
                 >
                   Tidak ada pemain yang cocok.
                 </td>
