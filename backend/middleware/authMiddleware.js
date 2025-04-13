@@ -4,6 +4,10 @@ const db = require('../config/db');
 const protectRoute = (req, res, next) => {
     const token = req.cookies.accessToken;
 
+    if (req.path === '/api/auth/logout') {
+        return next();
+    }
+
     if (!token) {
         return res.status(401).json({ message: "Unauthorized - No Token Provided" });
     }

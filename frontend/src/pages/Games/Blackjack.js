@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import {useDataStore} from "../../store/useDataStore";
+import {useGameStore} from "../../store/useGameStore";
 
 const kartuDeck = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
 const jenis = ["♠", "♥", "♦", "♣"];
@@ -14,7 +16,7 @@ const parseUang = (str) => {
 };
 
 const BlackjackGame = () => {
-  const [saldo, setSaldo] = useState(100000);
+  const [saldo, setSaldo] = useState("");
   const [taruhan, setTaruhan] = useState("");
   const [currentTaruhan, setCurrentTaruhan] = useState(0);
   const [playerCards, setPlayerCards] = useState([]);
@@ -22,6 +24,9 @@ const BlackjackGame = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [pesan, setPesan] = useState("");
   const [dealerTurn, setDealerTurn] = useState(false);
+
+  const { getUserBalance, isLoading } = useDataStore();
+  const {setBet, updateBalance, isUpdatingBalance} = useGameStore()
 
   const getRandomCard = () => {
     const angka = kartuDeck[Math.floor(Math.random() * kartuDeck.length)];
@@ -52,10 +57,23 @@ const BlackjackGame = () => {
       setPesan("❌ Masukkan taruhan yang valid.");
       return;
     }
+
+    if (nilaiTaruhan < 10000) {
+      setPesan("❌ Minimal taruhan adalah 10.000 koin.");
+      return;
+    }
+
+    if (nilaiTaruhan > 1000000) {
+      setPesan("❌ Maksimal taruhan adalah 1.000.000 koin.");
+      return;
+    }
+
     if (nilaiTaruhan > saldo) {
       setPesan("❌ Saldo tidak mencukupi untuk taruhan ini.");
       return;
     }
+
+    setBet(nilaiTaruhan)
     setSaldo((s) => s - nilaiTaruhan);
     setCurrentTaruhan(nilaiTaruhan);
     setPlayerCards([getRandomCard(), getRandomCard()]);
@@ -72,6 +90,7 @@ const BlackjackGame = () => {
     const total = hitungTotal(newCards);
     if (total > 21) {
       setPesan("💥 Kamu bust! Kartu lebih dari 21.");
+      updateBalance()
       setTimeout(() => resetGame(), 3000);
       setGameStarted(false);
     }
@@ -92,18 +111,23 @@ const BlackjackGame = () => {
 
     if (playerTotal > 21) {
       setPesan("💥 Kamu bust! Kartu lebih dari 21.");
+      updateBalance()
     } else if (dealerTotal > 21 || playerTotal > dealerTotal) {
       setSaldo((s) => s + currentTaruhan * 2);
       setPesan(`🎉 Kamu menang! +${formatUang(currentTaruhan * 2)} koin`);
+      updateBalance(true)
     } else if (playerTotal === dealerTotal) {
       setSaldo((s) => s + currentTaruhan);
       setPesan("🤝 Seri. Taruhan dikembalikan.");
+      setBet(0)
     } else {
       setPesan("😢 Kamu kalah.");
+      updateBalance()
     }
 
     setGameStarted(false);
     setTimeout(() => resetGame(), 4000);
+    fetchSaldo();
   };
 
   const resetGame = () => {
@@ -115,12 +139,30 @@ const BlackjackGame = () => {
     setPesan("");
   };
 
+  const fetchSaldo = async () => {
+    try {
+      const res = await getUserBalance();
+      setSaldo(res.saldo);
+    } catch (error) {
+      console.error("Error fetching saldo:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchSaldo();
+  }, [isUpdatingBalance]);
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 to-black text-white p-6">
       <div className="bg-black bg-opacity-80 p-8 rounded-2xl max-w-2xl w-full border-4 border-yellow-400 shadow-lg">
         <h1 className="text-3xl font-bold text-yellow-300 mb-4 text-center">♠️ Blackjack Remi</h1>
 
-        <div className="mb-4 text-lg text-center">Saldo: 💰 {formatUang(saldo)} koin</div>
+        <div className="mb-4 text-lg text-center">
+          {!isUpdatingBalance && !isLoading
+              ? `Saldo: 💰 ${formatUang(saldo)} koin`
+              : 'Loading...'
+          }
+        </div>
 
         <div className="mb-4">
           <label className="block text-left mb-1 font-medium">🎯 Taruhan</label>

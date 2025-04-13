@@ -67,10 +67,7 @@ export const useAuthStore = create((set, get) => ({
                 toast.success("Berhasil logout.");
             }
         } catch (error) {
-            set({errorMessage: error.response?.data?.message});
-            if (options.showToast) {
-                toast.error(error.response?.data?.message || "Logout failed");
-            }
+
         }
     },
 

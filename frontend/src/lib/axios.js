@@ -45,8 +45,9 @@ axiosInstance.interceptors.response.use(
         // Skip for login and register
         if (
             originalRequest.url?.includes('/auth/login') ||
-            originalRequest.url?.includes('/auth/register')
-        ) {
+            originalRequest.url?.includes('/auth/register') ||
+            originalRequest.url?.includes('/auth/logout')  // Add this line
+    ) {
             return Promise.reject(error);
         }
 

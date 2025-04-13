@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import {useDataStore} from "../../store/useDataStore";
+import {Loader, Loader2} from "lucide-react";
+import toast from "react-hot-toast";
+import {useAuthStore} from "../../store/useAuthStore";
 
 // Fungsi bantu
 const formatUang = (value) => {
-  if (!value) return "";
+  if (!value) return "0";
   return parseInt(value).toLocaleString("id-ID");
 };
 
@@ -17,40 +21,59 @@ const DetailPemain = () => {
 
   const [user, setUser] = useState(null);
   const [tambahSaldo, setTambahSaldo] = useState("");
-  const [pesan, setPesan] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const { getUser, addBalance, isUpdating } = useDataStore();
 
-  useEffect(() => {
-    const dummyUser = {
-      id: userId,
-      email: "example@gmail.com",
-      username: "pemain123",
-      saldo: 250000,
+  useEffect( () => {
+    const loadUser = async () => {
+      try {
+        setIsLoading(true);
+        const userData = await getUser(userId);
+        setUser(userData);
+      } catch (error) {
+        toast.error("Gagal memuat data pengguna");
+      } finally {
+        setIsLoading(false);
+      }
     };
-    setUser(dummyUser);
-  }, [userId]);
+    loadUser();
+  }, [userId, getUser]);
 
   const handleInputSaldo = (e) => {
     const raw = e.target.value.replace(/\D/g, "");
     setTambahSaldo(formatUang(raw));
   };
 
-  const handleTambahSaldo = () => {
+  const handleTambahSaldo = async () => {
     const nominal = parseUang(tambahSaldo);
     if (!nominal || nominal <= 0) {
-      setPesan("❌ Masukkan nominal saldo yang valid.");
+      toast.error("Masukkan nominal saldo yang valid.");
       return;
     }
 
-    setUser((prev) => ({
-      ...prev,
-      saldo: prev.saldo + nominal,
-    }));
+    try {
+      await addBalance(userId, nominal);
 
-    setTambahSaldo("");
-    setPesan(`✅ Saldo berhasil ditambahkan +${formatUang(nominal)} koin`);
+      setUser((prev) => ({
+        ...prev,
+        saldo: Number(prev.saldo || 0) + nominal,
+      }));
+
+      setTambahSaldo("");
+    } catch (error) {
+
+    }
   };
 
-  if (!user) return <div className="text-white p-6">Memuat data...</div>;
+  if(isLoading) return (
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-indigo-900 to-black text-white px-6 py-12 space-y-16">
+        <Loader className="size-10 animate-spin"/>
+      </div>
+  )
+
+  if(!user) return (
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-indigo-900 to-black text-white px-6 py-12 space-y-16">Data pemain tidak ditemukan</div>
+  )
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 to-black text-white px-6 py-12">
@@ -85,14 +108,20 @@ const DetailPemain = () => {
           </div>
         </div>
 
-        {pesan && <p className="mt-4 text-sm text-green-300">{pesan}</p>}
-
         <div className="flex flex-col sm:flex-row justify-between mt-10 gap-4">
           <button
             onClick={handleTambahSaldo}
+            disabled={isUpdating}
             className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-xl text-white font-semibold transition"
           >
-            ➕ Tambah Saldo
+            {isUpdating ? (
+                <div className="flex items-center justify-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Loading...</span>
+                </div>
+            ) : (
+                "➕ Tambah Saldo"
+            )}
           </button>
 
           <button

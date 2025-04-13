@@ -1,21 +1,16 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import logo from "../Picture/logogamblinghub.png";
 import {useAuthStore} from "../store/useAuthStore";
+import {useDataStore} from "../store/useDataStore";
+import {useGameStore} from "../store/useGameStore";
 
 const Navbar = () => {
-  // Contoh data sementara, nanti bisa diganti dari state/auth
   const navigate = useNavigate();
   const {authUser, logout} = useAuthStore();
-
-  // const handleLogout = () => {
-  //   logout({ showToast: true }, navigate);
-  // };
-
-  // const handleLogout = () => {
-  //   setTimeout(() => logout(), 0);
-  //   navigate("/");
-  // };
+  const {getUserBalance, isLoading} = useDataStore()
+  const {isUpdatingBalance} = useGameStore()
+  const [saldo, setSaldo] = useState(authUser?.saldo || 0);
 
   const handleLogout = () => {
     logout({ showToast: true });
@@ -23,6 +18,23 @@ const Navbar = () => {
       navigate("/");
     }, 50);
   };
+
+    useEffect(() => {
+        const fetchSaldo = async () => {
+            try {
+                if (authUser) {
+                    const res = await getUserBalance();
+                    setSaldo(res.saldo);
+                } else {
+                    setSaldo(0);
+                }
+            } catch (error) {
+                console.error("Error fetching saldo:", error);
+            }
+        };
+
+        fetchSaldo();
+    }, [isUpdatingBalance]);
 
   return (
       <nav className="bg-[#1e1a18] shadow-md text-white">
@@ -42,7 +54,13 @@ const Navbar = () => {
                 Username: <span className="text-indigo-400">{authUser.username}</span>
               </span>
               <span className="font-semibold text-gray-200">
-                Saldo: <span className="text-green-400">Rp {authUser.saldo?.toLocaleString() || "0"}</span>
+                Saldo: <span className="text-green-400">
+                {!isLoading ? (
+                    `Rp ${typeof saldo === 'number' ? saldo.toLocaleString() : "0"}`
+                ) : (
+                    "Loading..."
+                )}
+              </span>
               </span>
             </div>
           </div>
