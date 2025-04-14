@@ -3,14 +3,6 @@ import { Link } from "react-router-dom";
 import {useDataStore} from "../../store/useDataStore";
 import {Loader} from "lucide-react";
 
-const dummyPemain = [
-  { email: "andi@mail.com", username: "andigame", saldo: 250000 },
-  { email: "sita@mail.com", username: "sita88", saldo: 800000 },
-  { email: "budi@mail.com", username: "budiKing", saldo: 150000 },
-  { email: "maya@mail.com", username: "mayaQueen", saldo: 920000 },
-  { email: "udin@mail.com", username: "udinslot", saldo: 310000 },
-];
-
 const DaftarPemain = () => {
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState("username");

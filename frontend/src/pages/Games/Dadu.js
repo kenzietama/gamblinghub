@@ -50,28 +50,22 @@ const Dadu = () => {
         </div>
 
         <div className="flex justify-center gap-8 text-6xl mb-6">
-          <motion.div
-            key={dadu1}
-            initial={{ rotate: 0, scale: 1 }}
-            animate={{
-              rotate: rolling ? 360 : 0,
-              scale: rolling ? 1.2 : 1,
-            }}
-            transition={{ duration: 0.3 }}
-          >
-            🎲 {dadu1}
-          </motion.div>
-          <motion.div
-            key={dadu2}
-            initial={{ rotate: 0, scale: 1 }}
-            animate={{
-              rotate: rolling ? 360 : 0,
-              scale: rolling ? 1.2 : 1,
-            }}
-            transition={{ duration: 0.3 }}
-          >
-            🎲 {dadu2}
-          </motion.div>
+          {[dadu1, dadu2].map((angka, i) => (
+            <div key={i} className="flex flex-col items-center">
+              <motion.div
+                animate={rolling ? { rotate: 360 } : { rotate: 0 }}
+                transition={{
+                  duration: 0.5,
+                  ease: "easeInOut",
+                  repeat: rolling ? Infinity : 0,
+                }}
+                className="text-5xl"
+              >
+                🎲
+              </motion.div>
+              <div className="mt-1 text-4xl font-bold">{angka}</div>
+            </div>
+          ))}
         </div>
 
         <button
