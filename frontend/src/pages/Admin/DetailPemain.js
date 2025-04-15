@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import {useDataStore} from "../../store/useDataStore";
 import {Loader, Loader2} from "lucide-react";
 import toast from "react-hot-toast";
-import {useAuthStore} from "../../store/useAuthStore";
+import {useAdminStore} from "../../store/useAdminStore";
 
 // Fungsi bantu
 const formatUang = (value) => {
@@ -22,7 +22,8 @@ const DetailPemain = () => {
   const [user, setUser] = useState(null);
   const [tambahSaldo, setTambahSaldo] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const { getUser, addBalance, isUpdating } = useDataStore();
+  const { getUser } = useDataStore();
+  const { addBalance, isUpdating } = useAdminStore()
 
   useEffect( () => {
     const loadUser = async () => {

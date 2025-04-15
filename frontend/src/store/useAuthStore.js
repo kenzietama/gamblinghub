@@ -95,13 +95,17 @@ export const useAuthStore = create((set, get) => ({
     updateProfile: async (data, navigate) => {
         set({isUpdatingProfile: true});
         try {
-            const res = await axiosInstance.put("/user/profile", data);
+            await axiosInstance.put("/users/profile", data);
             get().checkAuth(); // Refresh auth state
             toast.success("Profil berhasil diperbarui!");
             navigate("/profil");
         } catch (error) {
-            set({errorMessage: error.response.data.message});
-            toast.error(error.response?.data?.message || "Gagal memperbarui profil");
+            const errorMessage = error.response?.data?.message ||
+                error.response?.data?.error ||
+                error.message ||
+                "Gagal memperbarui profil";
+            set({errorMessage: errorMessage});
+            toast.error(errorMessage);
         } finally {
             set({isUpdatingProfile: false});
         }

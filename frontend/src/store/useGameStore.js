@@ -1,13 +1,19 @@
-import { create } from "zustand"
+import {create} from "zustand"
 import axiosInstance from "../lib/axios"
 import toast from "react-hot-toast";
 
 export const useGameStore = create((set, get) => ({
-    isUpdatingBalance: false,
     bet: 0,
+    jackpotId: null,
+    result: null,
+    isUpdatingBalance: false,
 
     setBet: (amount) => {
         set({bet: amount})
+    },
+
+    setResult: (result) => {
+        set({result: result})
     },
 
     updateBalance: async(win = false) => {
@@ -29,4 +35,28 @@ export const useGameStore = create((set, get) => ({
             set({isUpdatingBalance: false})
         }
     },
+
+    playJackpot: async () => {
+        try {
+            const res = await axiosInstance.get("/games/playjackpot")
+            set({ jackpotId: res.data.id })
+            return res.data;
+        } catch (error) {
+            console.error("Error saving jackpot history:", error);
+        } finally {
+
+        }
+    },
+
+    saveJackpotHistory: async () => {
+        try {
+            await axiosInstance.post(`/games/playjackpot/${get().jackpotId}/${get().result}`)
+        } catch (error) {
+            console.error("Error saving jackpot history:", error);
+        } finally {
+            set({ jackpotId: null })
+            set({ result: null })
+        }
+    },
+
 }))

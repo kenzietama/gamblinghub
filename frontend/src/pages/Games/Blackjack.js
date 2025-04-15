@@ -16,7 +16,7 @@ const parseUang = (str) => {
 };
 
 const BlackjackGame = () => {
-  const [saldo, setSaldo] = useState("");
+  const [saldo, setSaldo] = useState(0);
   const [taruhan, setTaruhan] = useState("");
   const [currentTaruhan, setCurrentTaruhan] = useState(0);
   const [playerCards, setPlayerCards] = useState([]);
@@ -158,9 +158,10 @@ const BlackjackGame = () => {
         <h1 className="text-3xl font-bold text-yellow-300 mb-4 text-center">♠️ Blackjack Remi</h1>
 
         <div className="mb-4 text-lg text-center">
-          {!isUpdatingBalance && !isLoading
-              ? `Saldo: 💰 ${formatUang(saldo)} koin`
-              : 'Loading...'
+          Saldo: 💰
+          {isUpdatingBalance || isLoading
+              ? "Loading..."
+              : saldo ? ` ${formatUang(saldo)} koin` : "Loading..."
           }
         </div>
 
@@ -183,21 +184,21 @@ const BlackjackGame = () => {
           <button
             onClick={startGame}
             disabled={gameStarted}
-            className="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 rounded-xl text-black font-bold"
+            className="px-4 py-2 bg-yellow-500 disabled:bg-yellow-700 hover:bg-yellow-400 rounded-xl text-black font-bold"
           >
             🎮 Mulai Game
           </button>
           <button
             onClick={tambahKartu}
             disabled={!gameStarted}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold"
+            className="px-4 py-2 bg-blue-600 disabled:bg-blue-800 hover:bg-blue-500 rounded-xl font-bold"
           >
             Hit
           </button>
           <button
             onClick={selesai}
             disabled={!gameStarted}
-            className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-xl font-bold"
+            className="px-4 py-2 bg-red-600 disabled:bg-red-800 hover:bg-red-500 rounded-xl font-bold"
           >
             Stand
           </button>

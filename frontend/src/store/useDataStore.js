@@ -6,7 +6,6 @@ export const useDataStore = create((set, get) => ({
     users: [],
     saldo: null,
     isLoading: false,
-    isUpdating: false,
 
     getUsers: async () => {
         set({isLoading: true})
@@ -30,19 +29,6 @@ export const useDataStore = create((set, get) => ({
             toast.error(error.response.data.message)
         } finally {
             set({isLoading: false})
-        }
-    },
-
-    addBalance: async (userId, amount) => {
-        set({isUpdating: true})
-        try {
-            const res = await axiosInstance.post(`/users/${userId}/saldo`, { amount })
-            toast.success("Saldo berhasil ditambahkan")
-            return res.data;
-        } catch (error) {
-            toast.error(error.response.data.message)
-        } finally {
-            set({isUpdating: false})
         }
     },
 

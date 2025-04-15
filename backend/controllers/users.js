@@ -127,7 +127,7 @@ const updateProfile = async (req, res) => {
                     email: email,
                     username: username,
                     saldo: user.saldo,
-                    role: user.role || 'user',
+                    role: user.role || 0,
                 },
                 process.env.JWT_SECRET,
                 { expiresIn: 60 * 60 * 6 } // 1 hour
@@ -138,7 +138,7 @@ const updateProfile = async (req, res) => {
                     userId: user.id,
                     email: email,
                     username: username,
-                    role: user.role || 'user',
+                    role: user.role || 0,
                 },
                 process.env.REFRESH_TOKEN_SECRET,
                 { expiresIn: 60 * 60 * 24 * 7 } // 7 days
@@ -264,109 +264,6 @@ const getUser = async (req, res) => {
     }
 }
 
-const addSaldo = async (req, res) => {
-    const { amount } = req.body;
-    const userId = req.params.id;
-    const adminId = req.user.id;  // The admin's ID from the auth token
-    const { role } = req.user;
-
-    try {
-        // Validate admin permissions
-        if (role !== 1) {
-            return res.status(403).json({ message: "Forbidden: You don't have permission to add saldo" });
-        }
-
-        // Validate amount
-        if (!amount || amount <= 0) {
-            return res.status(400).json({ message: "Invalid amount" });
-        }
-
-        // Use transaction to ensure both operations succeed or fail together
-        db.getConnection((err, connection) => {
-            if (err) {
-                console.error("Connection error:", err);
-                return res.status(500).json({ message: "Database connection error" });
-            }
-
-            connection.beginTransaction(err => {
-                if (err) {
-                    connection.release();
-                    console.error("Transaction error:", err);
-                    return res.status(500).json({ message: "Database error" });
-                }
-
-                // Step 1: Check if admin has enough saldo
-                const checkAdminSql = "SELECT saldo FROM user WHERE id = ? AND role = 1";
-                connection.query(checkAdminSql, [adminId], (err, adminResults) => {
-                    if (err || adminResults.length === 0) {
-                        return connection.rollback(() => {
-                            connection.release();
-                            res.status(404).json({ message: "Admin not found or database error" });
-                        });
-                    }
-
-                    const adminSaldo = adminResults[0].saldo || 0;
-                    if (adminSaldo < amount) {
-                        return connection.rollback(() => {
-                            connection.release();
-                            res.status(400).json({ message: "Insufficient admin saldo" });
-                        });
-                    }
-
-                    // Step 2: Subtract from admin
-                    const updateAdminSql = "UPDATE user SET saldo = saldo - ? WHERE id = ?";
-                    connection.query(updateAdminSql, [amount, adminId], (err, adminResult) => {
-                        if (err || adminResult.affectedRows === 0) {
-                            return connection.rollback(() => {
-                                connection.release();
-                                res.status(500).json({ message: "Failed to update admin saldo" });
-                            });
-                        }
-
-                        // Step 3: Add to target user
-                        const updateUserSql = "UPDATE user SET saldo = saldo + ? WHERE id = ?";
-                        connection.query(updateUserSql, [amount, userId], (err, userResult) => {
-                            if (err) {
-                                return connection.rollback(() => {
-                                    connection.release();
-                                    res.status(500).json({ message: "Failed to update user saldo" });
-                                });
-                            }
-
-                            if (userResult.affectedRows === 0) {
-                                return connection.rollback(() => {
-                                    connection.release();
-                                    res.status(404).json({ message: "Target user not found" });
-                                });
-                            }
-
-                            // Commit the transaction if everything succeeded
-                            connection.commit(err => {
-                                if (err) {
-                                    return connection.rollback(() => {
-                                        connection.release();
-                                        res.status(500).json({ message: "Transaction failed" });
-                                    });
-                                }
-
-                                connection.release();
-
-                                res.status(200).json({
-                                    message: "Saldo transferred successfully",
-                                    amount: amount,
-                                });
-                            });
-                        });
-                    });
-                });
-            });
-        });
-    } catch (error) {
-        console.error("Unexpected error in addSaldo:", error);
-        return res.status(500).json({ message: "Internal server error" });
-    }
-}
-
 const getUserBalance = async (req, res) => {
     const id = req.user.id;
 
@@ -379,9 +276,8 @@ const getUserBalance = async (req, res) => {
             }
 
             if (!results || results.length === 0) {
-                return res.status(404).json({ message: "User not foundssss" });
+                return res.status(404).json({ message: "User not found" });
             }
-            console.log(results[0])
             res.status(200).json(  results[0] );
         });
     } catch (error) {
@@ -396,6 +292,5 @@ module.exports = {
     updateProfile,
     updatePassword,
     getUser,
-    addSaldo,
     getUserBalance
 }

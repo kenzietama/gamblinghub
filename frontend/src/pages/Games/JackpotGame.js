@@ -1,24 +1,44 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { motion } from "framer-motion";
+import {useDataStore} from "../../store/useDataStore";
+import {useGameStore} from "../../store/useGameStore";
 
 const simbolJackpot = ["🍒", "🍋", "🔔", "⭐", "🍀", "💎", "7️⃣"];
 
 const JackpotGame = () => {
-  const [saldo, setSaldo] = useState(100);
+  const [saldo, setSaldo] = useState(0);
   const [hasil, setHasil] = useState(["❓", "❓", "❓"]);
   const [pesan, setPesan] = useState("");
   const [spinning, setSpinning] = useState(false);
 
-  const spin = () => {
-    if (saldo < 10 || spinning) return;
+  const {getUserBalance, isLoading} = useDataStore();
+  const {setBet, updateBalance, isUpdatingBalance, playJackpot, saveJackpotHistory, setResult} = useGameStore()
 
+  const spin = async () => {
+    if (saldo < 10000 || spinning) return;
+
+    const {menang} = await playJackpot();
+
+    setBet(10000);
     setSpinning(true);
-    setSaldo(saldo - 10);
+    setSaldo(saldo - 10000);
     setPesan("🎲 Memutar...");
 
     setTimeout(() => {
       let gulungan;
-      const isJackpot = Math.random() < 0.1; // 10% chance
+      let isJackpot;
+
+      if(menang === -1) {
+        isJackpot = Math.random() < 0.1 //10% chance
+        if (isJackpot) {
+          setResult(1)
+        }
+      } else if (menang === 0) {
+        isJackpot = false
+      } else if (menang === 1) {
+        isJackpot = true
+      }
+      // const isJackpot = menang === 1 ? true : Math.random() < 0.1; // 10% chance
 
       if (isJackpot) {
         const simbol = simbolJackpot[Math.floor(Math.random() * simbolJackpot.length)];
@@ -34,15 +54,37 @@ const JackpotGame = () => {
       setHasil(gulungan);
 
       if (gulungan[0] === gulungan[1] && gulungan[1] === gulungan[2]) {
-        setSaldo((prev) => prev + 100);
-        setPesan("🎉 JACKPOT! Kamu menang 100 koin!");
+        updateBalance(true);
+
+        setSaldo((prev) => prev + 10000);
+        setPesan("🎉 JACKPOT! Kamu menang 10000 koin!");
       } else {
+        updateBalance(false);
         setPesan("😢 Belum beruntung, coba lagi!");
       }
 
+      saveJackpotHistory()
       setSpinning(false);
     }, 1500);
   };
+
+  const formatUang = (angka) => {
+    if (!angka) return "";
+    return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  };
+
+  const fetchSaldo = async () => {
+    try {
+      const res = await getUserBalance();
+      setSaldo(res.saldo);
+    } catch (error) {
+      console.error("Error fetching saldo:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchSaldo();
+  }, [isUpdatingBalance]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 to-black text-white p-6">
@@ -51,7 +93,13 @@ const JackpotGame = () => {
 
         <div className="flex justify-between mb-4 text-yellow-300 font-medium">
           <span>Saldo:</span>
-          <span className="text-yellow-200 font-bold">💰 {saldo} koin</span>
+          <span className="text-yellow-200 font-bold">
+          Saldo: 💰
+          {isUpdatingBalance || isLoading
+              ? "Loading..."
+              : saldo ? ` ${formatUang(saldo)} koin` : "Loading..."
+          }
+          </span>
         </div>
 
         <div className="flex justify-center gap-6 mb-8">
@@ -76,7 +124,7 @@ const JackpotGame = () => {
               : "bg-yellow-500 hover:bg-yellow-400 hover:scale-105"
           }`}
         >
-          {spinning ? "🎲 Memutar..." : "🎯 SPIN (10 koin)"}
+          {spinning ? "🎲 Memutar..." : "🎯 SPIN (10000 koin)"}
         </button>
 
         {pesan && (

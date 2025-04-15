@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const auth = require("./routes/auth");
 const users = require("./routes/users");
 const games = require("./routes/games");
+const admin = require("./routes/admin");
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use(express.json());
 app.use("/api/auth/", auth);
 app.use("/api/users/", users);
 app.use("/api/games/", games);
+app.use("/api/admin/", admin);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

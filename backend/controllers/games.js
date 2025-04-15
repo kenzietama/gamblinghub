@@ -139,7 +139,67 @@ const updateBalance = (req, res) => {
     }
 }
 
+const playJackpot = (req, res) => {
+    const role = req.user.role;
+
+    if(role !== 0) {
+        return res.status(403).json({ message: "Admin unable to play" });
+    }
+
+    try {
+        const sql = "SELECT id, menang FROM history_jackpot WHERE user_id IS NULL LIMIT 1";
+        db.query(sql, (err, results) => {
+            if (err) {
+                console.error("Database error:", err);
+                return res.status(500).json({ message: "Server error" });
+            }
+
+            if (!results || results.length === 0) {
+                return res.status(200).json({ id: -1, menang: -1 });
+            }
+
+            return res.status(200).json( results[0] );
+        });
+    } catch (err) {
+        console.error("Error in playJackpot function:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+}
+
+const saveJackpotHistory = (req, res) => {
+    const userId = req.user.id;
+    const { id, result } = req.params;
+
+    try {
+        const sql = id === "-1"
+            ? "INSERT INTO history_jackpot (user_id, result) VALUES (?, ?)"
+            : "UPDATE history_jackpot SET user_id = ? WHERE id = ?";
+
+        const params = id === "-1"
+            ? [userId, result]
+            : [userId, id];
+
+        db.query(sql, params, (err, results) => {
+            if (err) {
+                console.error("Database error:", err);
+                return res.status(500).json({ message: "Server error" });
+            }
+
+            if (!results || results.length === 0) {
+                return res.status(404).json({ message: "No jackpot history found" });
+            }
+
+            return res.status(200).json({ message: "Jackpot history saved successfully" });
+        });
+    } catch (err) {
+        console.error("Error in saveJackpotHistory function:", err);
+        res.status(500).json({ message: "Server error" });
+    }
+}
+
 module.exports = {
     bet,
-    updateBalance
+    updateBalance,
+    playJackpot,
+    saveJackpotHistory,
 }
