@@ -48,12 +48,12 @@ const Profil = () => {
               Edit Profil
             </button>
 
-            <button
+            {/* <button
               onClick={handleTobat}
               className="bg-gray-700 hover:bg-gray-600 px-6 py-3 rounded-xl text-red-300 font-semibold transition"
             >
               Tobat (Hapus Akun)
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
