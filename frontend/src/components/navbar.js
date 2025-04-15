@@ -9,7 +9,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const {authUser, logout} = useAuthStore();
   const {getUserBalance, isLoading} = useDataStore()
-  const {isUpdatingBalance} = useGameStore()
+  const {isUpdatingBalance, isUpdatingLottery} = useGameStore()
   const [saldo, setSaldo] = useState(authUser?.saldo || 0);
 
   const handleLogout = () => {
@@ -34,7 +34,7 @@ const Navbar = () => {
         };
 
         fetchSaldo();
-    }, [isUpdatingBalance]);
+    }, [isUpdatingBalance, isUpdatingLottery]);
 
   return (
       <nav className="bg-[#1e1a18] shadow-md text-white">

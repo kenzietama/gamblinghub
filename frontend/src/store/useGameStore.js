@@ -7,6 +7,8 @@ export const useGameStore = create((set, get) => ({
     jackpotId: null,
     result: null,
     isUpdatingBalance: false,
+    isUpdatingLottery: false,
+    isLoadingLottery: false,
 
     setBet: (amount) => {
         set({bet: amount})
@@ -16,12 +18,12 @@ export const useGameStore = create((set, get) => ({
         set({result: result})
     },
 
-    updateBalance: async(win = false) => {
+    updateBalance: async(win = false, multiplier = 2) => {
         set({isUpdatingBalance: true})
         try {
             let amount;
             if (win) {
-                amount = get().bet;
+                amount = get().bet * multiplier - get().bet;
             } else {
                 amount = -get().bet;
             }
@@ -58,5 +60,43 @@ export const useGameStore = create((set, get) => ({
             set({ result: null })
         }
     },
+
+    setLottery: async (data) => {
+        set({isUpdatingLottery: true})
+        try {
+            console.log(data)
+            await axiosInstance.post("/games/lottery", data)
+            toast.success("Nomer berhasil disimpan")
+        } catch (error) {
+            toast.error(error.response.data.message)
+        } finally {
+            set({isUpdatingLottery: false})
+        }
+    },
+
+    getUserLottery: async () => {
+        set({isLoadingLottery: true})
+        try {
+            const res = await axiosInstance.get("/games/lottery")
+            return res.data;
+        } catch (error) {
+            console.error("Error fetching user lottery:", error);
+            // toast.error(error.response.data.message)
+        } finally {
+            set({isLoadingLottery: false})
+        }
+    },
+
+    getCurrentLottery: async () => {
+        set({isLoadingLottery: true})
+        try {
+            const res = await axiosInstance.get("/admin/lottery")
+            return res.data;
+        } catch (error) {
+            toast.error(error.response.data.message)
+        } finally {
+            set({isLoadingLottery: false})
+        }
+    }
 
 }))

@@ -115,7 +115,7 @@ const BlackjackGame = () => {
     } else if (dealerTotal > 21 || playerTotal > dealerTotal) {
       setSaldo((s) => s + currentTaruhan * 2);
       setPesan(`🎉 Kamu menang! +${formatUang(currentTaruhan * 2)} koin`);
-      updateBalance(true)
+      updateBalance(true, 2)
     } else if (playerTotal === dealerTotal) {
       setSaldo((s) => s + currentTaruhan);
       setPesan("🤝 Seri. Taruhan dikembalikan.");

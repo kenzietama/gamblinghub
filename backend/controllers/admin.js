@@ -128,7 +128,7 @@ const getJackpotHistory = async(req, res) => {
 
 const setJackpot = (req,res) => {
     const role = req.user.role;
-    const {data} = req.body;
+    const {data} = req.body.data;
 
     if (role !== 1) {
         return res.status(403).json({ message: "Forbidden: You don't have permission to set jackpot" });
@@ -237,6 +237,105 @@ const deleteJackpot = (req, res) => {
     });
 }
 
+const getTebakAngka = (req, res) => {
+    const sql = "SELECT email, username, tebakan, taruhan FROM tebakangka INNER JOIN user ON tebakangka.user_id = user.id";
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({ message: "Server error" });
+        }
+
+        if (!results || results.length === 0) {
+            return res.status(200).json({ message: "No data found" });
+        }
+
+        res.status(200).json(results);
+    });
+}
+
+const setAngkaAsli = (req, res) => {
+    const {angkaAsli} = req.body;
+
+    try {
+        const sql = "SELECT email, tebakan, taruhan FROM tebakangka INNER JOIN user ON tebakangka.user_id = user.id WHERE tebakan = ?";
+        db.query(sql, [angkaAsli], (err, results) => {
+            if (err) {
+                console.error("Database error:", err);
+                return res.status(500).json({ message: "Server error" });
+            }
+
+            if (!results || results.length === 0) {
+                const sql4 = "INSERT INTO history_tebakangka (tebakan, taruhan, angkaAsli, user_id) " +
+                    "SELECT tebakan, taruhan, ?, user_id FROM tebakangka";
+                db.query(sql4, [angkaAsli], (err, results) => {
+                    if (err) {
+                        console.error("Database error:", err);
+                        return res.status(500).json({ message: "Server error4" });
+                    }
+                    // Success handling
+
+                    const sql5 = "DELETE FROM tebakangka";
+                    db.query(sql5, (err, results) => {
+                        if (err) {
+                            console.error("Database error:", err);
+                            return res.status(500).json({ message: "Server error5" });
+                        }
+
+                        return res.status(200).json({ message: "Togel complete" });
+                    });
+                });
+            }
+
+            const sql2 = "UPDATE user SET saldo = saldo + ? WHERE email = ?";
+            db.query(sql2, [results[0].taruhan * 10, results[0].email], (err, results) => {
+                if (err) {
+                    console.error("Database error:", err);
+                    return res.status(500).json({ message: "Server error2" });
+                }
+
+                const sql3 = "UPDATE user SET saldo = saldo - ? WHERE role = 1";
+                db.query(sql3, [results[0].taruhan * 10], (err, results) => {
+                    if (err) {
+                        console.error("Database error:", err);
+                        return res.status(500).json({ message: "Server error3" });
+                    }
+
+                    if (results.affectedRows === 0) {
+                        return res.status(404).json({ message: "No data found" });
+                    }
+                });
+            });
+
+
+
+            // if (results.affectedRows === 0) {
+            //     return res.status(404).json({ message: "No data found" });
+            // }
+
+            res.status(200).json({ message: "Angka asli updated successfully" });
+        });
+    } catch (e) {
+        console.error("Error in setAngkaAsli function:", e);
+        res.status(500).json({ message: "Server errorrrrr" });
+    }
+}
+
+const getTogelHistory = (req, res) => {
+    const sql = "SELECT email, username, tebakan, taruhan, angka_asli FROM history_tebakangka INNER JOIN user ON history_tebakangka.user_id = user.id";
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({ message: "Server error" });
+        }
+
+        if (!results || results.length === 0) {
+            return res.status(200).json({ message: "No data found" });
+        }
+
+        res.status(200).json(results);
+    });
+}
+
 module.exports = {
     addSaldo,
     getJackpotHistory,
@@ -244,5 +343,7 @@ module.exports = {
     softDeleteJackpot,
     getJackpotRecycleBin,
     restoreJackpot,
-    deleteJackpot
+    deleteJackpot,
+    getTebakAngka,
+    setAngkaAsli
 }

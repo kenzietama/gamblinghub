@@ -6,6 +6,7 @@ export const useAdminStore = create((set, get) => ({
     isUpdating: false,
     isLoading: false,
     isDeleting: false,
+    isSettingAngkaAsli: false,
 
     addBalance: async (userId, amount) => {
         set({isUpdating: true})
@@ -96,5 +97,20 @@ export const useAdminStore = create((set, get) => ({
         }
     },
 
+    setAngkaAsli: async (data) => {
+        set({isSettingAngkaAsli: true})
+        const d = {
+            angkaAsli: data
+        }
+        try {
+            const res = await axiosInstance.post('/admin/lottery/finish', d)
+            toast.success("Nomer berhasil disimpan")
+            return res.data;
+        } catch (error) {
+            toast.error(error.response.data.message)
+        } finally {
+            set({isSettingAngkaAsli: false})
+        }
+    }
 
 }))
