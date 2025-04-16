@@ -111,6 +111,18 @@ export const useAdminStore = create((set, get) => ({
         } finally {
             set({isSettingAngkaAsli: false})
         }
+    },
+
+    getTogelHistory: async () => {
+        set({isLoading: true})
+        try {
+            const res = await axiosInstance.get('/admin/lottery/history')
+            return res.data;
+        } catch (error) {
+            toast.error(error.response.data.message)
+        } finally {
+            set({isLoading: false})
+        }
     }
 
 }))

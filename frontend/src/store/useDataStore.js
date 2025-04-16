@@ -43,6 +43,18 @@ export const useDataStore = create((set, get) => ({
         } finally {
             set({isLoading: false})
         }
+    },
+
+    getUserTogelHistory: async () => {
+        set({isLoading: true})
+        try {
+            const res = await axiosInstance.get(`/users/tebakangka/history`)
+            return res.data;
+        } catch (error) {
+            toast.error(error.response.data.message)
+        } finally {
+            set({isLoading: false})
+        }
     }
 
 }))

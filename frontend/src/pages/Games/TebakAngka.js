@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useGameStore } from "../../store/useGameStore";
-import {useDataStore} from "../../store/useDataStore";
+import { useDataStore } from "../../store/useDataStore";
+import toast from "react-hot-toast";
+import {useAdminStore} from "../../store/useAdminStore";
 
 const generateRandom4Digit = () => {
   return Array.from({ length: 4 }, () => Math.floor(Math.random() * 10)).join("");
@@ -17,88 +19,90 @@ const parseUang = (formatted) => {
 };
 
 const TebakAngka = () => {
-  const [angkaRahasia, setAngkaRahasia] = useState(generateRandom4Digit());
-  const [isRevealed, setIsRevealed] = useState(false);
+  const [tebakanList, setTebakanList] = useState([{ angka: "", taruhan: "", disabled: false }]);
   const [saldo, setSaldo] = useState(0);
-  const [pesan, setPesan] = useState("");
   const [peringatan, setPeringatan] = useState("");
-  const [tebakanList, setTebakanList] = useState([
-    { angka: "", taruhan: "", disabled: false }
-  ]);
-  const [isLoadings, setIsLoadings] = useState(true);
-  // Store all existing lottery numbers from database
+  const [isLoading, setIsLoading] = useState(true);
   const [existingNumbers, setExistingNumbers] = useState([]);
 
-  const { getUserLottery, setLottery, isUpdatingLottery } = useGameStore();
-  const {setBet, updateBalance, isUpdatingBalance} = useGameStore()
-  const { getUserBalance, isLoading } = useDataStore();
+  const [historyPemenang, setHistoryPemenang] = useState([]);
 
+
+  const { getUserLottery, setLottery, isUpdatingLottery } = useGameStore();
+  const { getUserBalance, getUserTogelHistory } = useDataStore();
+
+  // Fetch user balance
   const fetchSaldo = async () => {
     try {
       const res = await getUserBalance();
       setSaldo(res.saldo);
     } catch (error) {
       console.error("Error fetching saldo:", error);
+      toast.error("Gagal memuat saldo");
     }
   };
 
+  const fetchHistory = async () => {
+    const data = await getUserTogelHistory();
+    if (data) {
+      setHistoryPemenang(data);
+    }
+  }
+
+  // Load user data when component mounts or balance updates
   useEffect(() => {
     fetchSaldo();
-  }, [isUpdatingBalance, isUpdatingLottery]);
+    fetchHistory()
+    fetchUserLottery()
+  }, [isUpdatingLottery]);
 
-  // Fetch existing user lottery entries on page load
-  useEffect(() => {
-    const fetchUserLottery = async () => {
-      setIsLoadings(true);
-      try {
-        const data = await getUserLottery();
+  // Fetch existing lottery entries
+  const fetchUserLottery = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getUserLottery();
 
-        // Store all existing numbers for duplicate checking
-        if (data && data.length > 0) {
-          setExistingNumbers(data.map(entry => entry.tebakan));
+      if (data && data.length > 0) {
+        setExistingNumbers(data.map(entry => entry.tebakan));
 
-          // Transform the API data format to component state format
-          const existingEntries = data.map(entry => ({
-            angka: entry.tebakan.toString(),
-            taruhan: entry.taruhan.toString(),
-            disabled: true // Existing entries are locked
-          }));
+        const existingEntries = data.map(entry => ({
+          angka: entry.tebakan.toString(),
+          taruhan: entry.taruhan.toString(),
+          disabled: true
+        }));
 
-          // If there are fewer than 5 entries, add an empty one for new input
-          if (existingEntries.length < 5) {
-            existingEntries.push({ angka: "", taruhan: "", disabled: false });
-          }
-
-          setTebakanList(existingEntries);
+        if (existingEntries.length < 5) {
+          existingEntries.push({ angka: "", taruhan: "", disabled: false });
         }
-      } catch (error) {
-        console.error("Error fetching lottery data:", error);
-      } finally {
-        setIsLoadings(false);
+
+        setTebakanList(existingEntries);
       }
-    };
+    } catch (error) {
 
-    fetchUserLottery();
-  }, [getUserLottery]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  // Calculate total bet amount
   const totalTaruhanSaatIni = () => {
     return tebakanList.reduce((acc, t) => acc + parseUang(t.taruhan || "0"), 0);
   };
 
+  // Check if a number is already used
   const isNumberDuplicate = (number, currentIndex) => {
     if (!number || number.length !== 4) return false;
 
-    // Check if number exists in database
     if (existingNumbers.includes(number)) {
       return true;
     }
 
-    // Check if number exists in current form entries
     return tebakanList.some((tebakan, index) =>
         index !== currentIndex && tebakan.angka === number
     );
   };
 
+  // Handle input changes
   const handleInputChange = (index, field, value) => {
     const newList = [...tebakanList];
     if (newList[index].disabled) return;
@@ -121,7 +125,7 @@ const TebakAngka = () => {
 
     setTebakanList(newList);
 
-    const totalBaru = newList.reduce((acc, t) => acc + parseUang(t.taruhan || "0"), 0);
+    const totalBaru = totalTaruhanSaatIni();
     if (totalBaru > saldo) {
       setPeringatan("⚠️ Total taruhan melebihi saldo.");
     } else if (!peringatan.includes("Angka ini sudah digunakan")) {
@@ -129,9 +133,9 @@ const TebakAngka = () => {
     }
   };
 
+  // Add new betting set
   const tambahSetTebakan = () => {
     const last = tebakanList[tebakanList.length - 1];
-    const currentTotal = totalTaruhanSaatIni();
 
     if (tebakanList.length >= 5) return;
     if (!last.angka || !last.taruhan) return;
@@ -140,10 +144,8 @@ const TebakAngka = () => {
       return;
     }
 
-    const bet = parseUang(last.taruhan);
-
-    if (currentTotal > saldo) {
-      setPeringatan("⚠️ Tidak bisa tambah set baru, total taruhan melebihi saldo.");
+    if (totalTaruhanSaatIni() > saldo) {
+      setPeringatan("⚠️ Total taruhan melebihi saldo.");
       return;
     }
 
@@ -155,78 +157,112 @@ const TebakAngka = () => {
     setPeringatan("");
   };
 
+  const handleSaveSingleBet = async (index) => {
+    const bet = tebakanList[index];
+
+    // Validate input
+    if (bet.angka.length !== 4 || parseUang(bet.taruhan || "0") <= 0) {
+      toast.error("Angka harus 4 digit dan taruhan harus lebih dari 0");
+      return;
+    }
+
+    if (isNumberDuplicate(bet.angka, index)) {
+      setPeringatan("⚠️ Angka ini sudah digunakan. Pilih angka lain.");
+      return;
+    }
+
+    const betAmount = parseUang(bet.taruhan || "0");
+    if (betAmount > saldo) {
+      setPeringatan("⚠️ Taruhan melebihi saldo.");
+      return;
+    }
+
+    try {
+      // Send single bet to backend
+      const singleBet = [{
+        tebakan: bet.angka,
+        taruhan: betAmount
+      }];
+
+      const result = await setLottery(singleBet);
+
+      if (result && result.newBalance !== undefined) {
+        setSaldo(result.newBalance);
+        toast.success(`Tebakan ${bet.angka} berhasil disimpan!`);
+
+        // Update local state
+        setExistingNumbers(prev => [...prev, bet.angka]);
+
+        // Update UI list - disable this bet
+        const updatedList = [...tebakanList];
+        updatedList[index] = { ...bet, disabled: true };
+
+        // Add new empty bet field if under limit
+        if (updatedList.filter(item => !item.disabled).length === 0 && updatedList.length < 5) {
+          updatedList.push({ angka: "", taruhan: "", disabled: false });
+        }
+
+        setTebakanList(updatedList);
+      }
+    } catch (error) {
+      console.error("Error saving bet:", error);
+      toast.error(error.response?.data?.message || "Gagal menyimpan tebakan");
+    }
+  };
+
+  // Submit bets to the server
   const handleTebak = async () => {
-    // Get only the new entries (not disabled) for sending to backend
+    // Validate inputs
     const newGuesses = tebakanList
         .filter(({ angka, taruhan, disabled }) =>
             !disabled && angka.length === 4 && parseUang(taruhan || "0") > 0)
         .map(({ angka, taruhan }) => ({
           tebakan: angka,
-          taruhan: parseUang(taruhan || "0")  // Convert to integer
+          taruhan: parseUang(taruhan || "0")
         }));
 
-    // If there are new guesses, send them to the backend
-    if (newGuesses.length > 0) {
-      try {
-        // console.log("Submitting new guesses:", newGuesses);
-
-        // After successful submission, add the new numbers to existingNumbers for duplicate checking
-        const newNumbers = newGuesses.map(guess => guess.tebakan);
-        setExistingNumbers(prev => [...prev, ...newNumbers]);
-
-        // After successful submission, disable the submitted guesses
-        const updatedList = tebakanList.map(item => {
-          if (!item.disabled && item.angka.length === 4 && parseUang(item.taruhan || "0") > 0) {
-            return { ...item, disabled: true };
-          }
-          return item;
-        });
-
-        // If there's room for more guesses, add a new empty entry
-        if (updatedList.length < 5) {
-          updatedList.push({ angka: "", taruhan: "", disabled: false });
-        }
-
-        setTebakanList(updatedList);
-        await setLottery(tebakanList);
-      } catch (error) {
-        console.error("Error submitting lottery guesses:", error);
-      }
+    if (newGuesses.length === 0) {
+      toast.error("Tidak ada tebakan yang valid");
+      return;
     }
 
-    // Handle game logic as before
-    // let totalBet = 0;
-    // let reward = 0;
-    // let message = "";
-    //
-    // tebakanList.forEach(({ angka, taruhan }, i) => {
-    //   const bet = parseUang(taruhan || "0");
-    //
-    //   if (angka.length === 4 && bet > 0) {
-    //     totalBet += bet;
-    //     if (angka === angkaRahasia) {
-    //       reward += bet * 2;
-    //       message += `✅ Set ${i + 1} BENAR! +${formatUang(bet * 2)} koin\n`;
-    //     } else {
-    //       message += `❌ Set ${i + 1} salah. -${formatUang(bet)} koin\n`;
-    //     }
-    //   }
-    // });
-
+    const totalBet = newGuesses.reduce((sum, item) => sum + item.taruhan, 0);
     // if (totalBet > saldo) {
-    //   setPesan("❗ Total taruhan melebihi saldo!");
+    //   setPeringatan("⚠️ Total taruhan melebihi saldo.");
+    //   toast.error("Saldo tidak cukup");
     //   return;
     // }
 
-    // setSaldo((s) => s - totalBet + reward);
-    // setIsRevealed(true);
-    // setPesan(message || "⚠️ Tidak ada tebakan valid.");
+    try {
+      // Send to backend
+      const result = await setLottery(newGuesses);
 
-    setTimeout(() => {
-      setAngkaRahasia(generateRandom4Digit());
-      setIsRevealed(false);
-      setPeringatan("");
-    }, 3000);
+      if (result && result.newBalance !== undefined) {
+        setSaldo(result.newBalance);
+        toast.success(`Tebakan berhasil disimpan! Saldo: ${formatUang(result.newBalance)}`);
+      }
+
+      // Update local state
+      const newNumbers = newGuesses.map(guess => guess.tebakan);
+      setExistingNumbers(prev => [...prev, ...newNumbers]);
+
+      // Update UI list
+      const updatedList = tebakanList.map(item => {
+        if (!item.disabled && item.angka.length === 4 && parseUang(item.taruhan || "0") > 0) {
+          return { ...item, disabled: true };
+        }
+        return item;
+      });
+
+      if (updatedList.length < 5) {
+        updatedList.push({ angka: "", taruhan: "", disabled: false });
+      }
+
+      setTebakanList(updatedList);
+    } catch (error) {
+      console.error("Error submitting lottery guesses:", error);
+      toast.error(error.response?.data?.message || "Gagal menyimpan tebakan");
+    }
   };
 
   if (isLoading) {
@@ -238,16 +274,11 @@ const TebakAngka = () => {
   }
 
   return (
-      <div
-          className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 to-black text-white p-6">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 to-black text-white p-6">
         <h1 className="text-4xl font-bold text-indigo-300 mb-4">🎯 Tebak Angka Rahasia</h1>
 
         <div className="mb-4 text-lg text-center">
-          Saldo: 💰
-          {isUpdatingBalance || isLoading
-              ? "Loading..."
-              : saldo ? ` ${formatUang(saldo)} koin` : "Loading..."
-          }
+          Saldo: 💰 {isUpdatingLottery ? "Loading..." : formatUang(saldo)} koin
         </div>
 
         {peringatan && (
@@ -255,26 +286,6 @@ const TebakAngka = () => {
               {peringatan}
             </div>
         )}
-
-        <div className="flex gap-2 mb-6 text-2xl">
-          {isRevealed
-              ? angkaRahasia.split("").map((digit, i) => (
-                  <div
-                      key={i}
-                      className="w-12 h-12 bg-indigo-700 rounded flex items-center justify-center font-bold border-2 border-white"
-                  >
-                    {digit}
-                  </div>
-              ))
-              : Array.from({length: 4}).map((_, i) => (
-                  <div
-                      key={i}
-                      className="w-12 h-12 bg-gray-700 rounded flex items-center justify-center font-bold border-2 border-white"
-                  >
-                    ❓
-                  </div>
-              ))}
-        </div>
 
         <div className="w-full max-w-md flex flex-col gap-4 mb-4">
           {tebakanList.map((tebakan, index) => (
@@ -301,37 +312,82 @@ const TebakAngka = () => {
                     }`}
                     placeholder="Taruhan"
                 />
+                {!tebakan.disabled && (
+                    <button
+                        onClick={() => handleSaveSingleBet(index)}
+                        disabled={isUpdatingLottery || tebakan.angka.length !== 4 || !parseUang(tebakan.taruhan)}
+                        className={`px-3 py-2 rounded text-white ${
+                            isUpdatingLottery || tebakan.angka.length !== 4 || !parseUang(tebakan.taruhan)
+                                ? "bg-gray-400 cursor-not-allowed"
+                                : "bg-green-600 hover:bg-green-500"
+                        }`}
+                        title="Simpan tebakan ini"
+                    >
+                      💾
+                    </button>
+                )}
               </div>
           ))}
         </div>
 
-        {tebakanList.length < 5 && tebakanList.some(item => !item.disabled) && (
-            <button
-                onClick={tambahSetTebakan}
-                className="mb-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white"
-            >
-              ➕ Tambah Set Tebakan
-            </button>
+        <h2 className="text-xl font-semibold mb-4">Riwayat Tebakangka</h2>
+        {isLoading ? (
+            <div className="py-8 text-center text-gray-400">
+              <div
+                  className="animate-spin inline-block w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full mb-2"></div>
+              <p>Loading data...</p>
+            </div>
+        ) : (
+            historyPemenang && historyPemenang.length > 0 ? (
+                <table className="w-full text-center table-auto border-collapse">
+                  <thead>
+                  <tr className="text-indigo-400 border-b border-indigo-700">
+                    <th>Angka Tebakan</th>
+                    <th>Angka Asli</th>
+                    <th>Taruhan</th>
+                    <th>Keterangan</th>
+                    <th>Saldo</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {historyPemenang.map((pemain, i) => (
+                      <tr key={i} className="border-t border-gray-700">
+                        <td className="text-center">{pemain.tebakan}</td>
+                        <td className="text-center">{pemain.angka_asli}</td>
+                        <td className="text-center">{formatUang(pemain.taruhan)} koin</td>
+                        <td className="text-center">{pemain.tebakan === pemain.angka_asli ? "MENANG" : "KALAH"}</td>
+                        <td className="text-center">{pemain.tebakan === pemain.angka_asli ? `+${formatUang(pemain.taruhan * 9)}` : `-${formatUang(pemain.taruhan)}`} koin </td>
+                      </tr>
+                  ))}
+                  </tbody>
+                </table>
+            ) : (
+                <div className="py-8 text-center text-gray-400">
+                  Tidak ada data pemain saat ini
+                </div>
+            )
         )}
 
-        <button
-            onClick={handleTebak}
-            disabled={isUpdatingLottery || saldo <= 0 || !tebakanList.some(item => !item.disabled)}
-            className={`w-full max-w-md py-3 rounded-xl font-bold text-white text-xl ${
-                isUpdatingLottery || saldo <= 0 || !tebakanList.some(item => !item.disabled)
-                    ? "bg-gray-600 cursor-not-allowed"
-                    : "bg-indigo-600 hover:bg-indigo-500"
-            }`}
-        >
-          {isUpdatingLottery ? 'Menyimpan...' : '🚀 Kirim Tebakan'}
-        </button>
+        {/*{tebakanList.length < 5 && tebakanList.some(item => !item.disabled) && (*/}
+        {/*    <button*/}
+        {/*        onClick={tambahSetTebakan}*/}
+        {/*        className="mb-4 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-white"*/}
+        {/*    >*/}
+        {/*      ➕ Tambah Set Tebakan*/}
+        {/*    </button>*/}
+        {/*)}*/}
 
-        {pesan && (
-            <pre
-                className="mt-4 bg-indigo-800 bg-opacity-40 p-4 rounded-lg whitespace-pre-wrap text-sm text-indigo-200">
-          {pesan}
-        </pre>
-        )}
+        {/*<button*/}
+        {/*    onClick={handleTebak}*/}
+        {/*    disabled={isUpdatingLottery || saldo <= 0 || !tebakanList.some(item => !item.disabled)}*/}
+        {/*    className={`w-full max-w-md py-3 rounded-xl font-bold text-white text-xl ${*/}
+        {/*        isUpdatingLottery || saldo <= 0 || !tebakanList.some(item => !item.disabled)*/}
+        {/*            ? "bg-gray-600 cursor-not-allowed"*/}
+        {/*            : "bg-indigo-600 hover:bg-indigo-500"*/}
+        {/*    }`}*/}
+        {/*>*/}
+        {/*  {isUpdatingLottery ? 'Menyimpan...' : '🚀 Kirim Tebakan'}*/}
+        {/*</button>*/}
       </div>
   );
 };

@@ -197,17 +197,121 @@ const saveJackpotHistory = (req, res) => {
     }
 }
 
+// const setLottery = (req, res) => {
+//     const userId = req.user.id;
+//     // The data is inside req.body.data, not directly in req.body
+//     const data  = req.body;
+//
+//     try {
+//         if (!data || !Array.isArray(data) || data.length === 0) {
+//             return res.status(400).json({ message: "Invalid or empty array provided" });
+//         }
+//
+//         console.log("Received data:", data); // Debug log
+//
+//         // Calculate total bet amount
+//         const totalBet = data.reduce((sum, item) => sum + Number(item.taruhan), 0);
+//
+//         // Use transaction to ensure data consistency
+//         db.getConnection((err, connection) => {
+//             if (err) {
+//                 console.error("Connection error:", err);
+//                 return res.status(500).json({ message: "Database connection error" });
+//             }
+//
+//             connection.beginTransaction(err => {
+//                 if (err) {
+//                     connection.release();
+//                     console.error("Transaction error:", err);
+//                     return res.status(500).json({ message: "Database error" });
+//                 }
+//
+//                 // Check if user has enough balance
+//                 connection.query("SELECT saldo FROM user WHERE id = ?", [userId], (err, results) => {
+//                     if (err || !results || results.length === 0) {
+//                         return connection.rollback(() => {
+//                             connection.release();
+//                             res.status(404).json({ message: "User not found" });
+//                         });
+//                     }
+//
+//                     const userBalance = results[0].saldo;
+//                     if (userBalance < totalBet) {
+//                         return connection.rollback(() => {
+//                             connection.release();
+//                             res.status(400).json({ message: "Insufficient balance" });
+//                         });
+//                     }
+//
+//                     // Update user balance
+//                     connection.query(
+//                         "UPDATE user SET saldo = saldo - ? WHERE id = ?",
+//                         [totalBet, userId],
+//                         (err) => {
+//                             if (err) {
+//                                 return connection.rollback(() => {
+//                                     connection.release();
+//                                     res.status(500).json({ message: "Failed to update balance" });
+//                                 });
+//                             }
+//
+//                             // Create placeholders for each row
+//                             const placeholders = data.map(() => "(?, ?, ?)").join(", ");
+//                             const sql = `INSERT INTO tebakangka (tebakan, taruhan, user_id) VALUES ${placeholders}`;
+//
+//                             // Flatten the array for the query
+//                             const flatValues = [];
+//                             data.forEach(item => {
+//                                 flatValues.push(item.tebakan);
+//                                 flatValues.push(item.taruhan);
+//                                 flatValues.push(userId);
+//                             });
+//
+//                             connection.query(sql, flatValues, (err) => {
+//                                 if (err) {
+//                                     return connection.rollback(() => {
+//                                         connection.release();
+//                                         console.error("Insert error:", err);
+//                                         res.status(500).json({ message: "Failed to save lottery entries" });
+//                                     });
+//                                 }
+//
+//                                 connection.commit(err => {
+//                                     if (err) {
+//                                         return connection.rollback(() => {
+//                                             connection.release();
+//                                             res.status(500).json({ message: "Transaction failed" });
+//                                         });
+//                                     }
+//
+//                                     connection.release();
+//                                     res.status(200).json({
+//                                         message: `Successfully inserted ${data.length} lottery guesses`,
+//                                         newBalance: userBalance - totalBet
+//                                     });
+//                                 });
+//                             });
+//                         }
+//                     );
+//                 });
+//             });
+//         });
+//     } catch (err) {
+//         console.error("Error in setLottery function:", err);
+//         res.status(500).json({ message: "Server error" });
+//     }
+// };
+
 const setLottery = (req, res) => {
     const userId = req.user.id;
-    // The data is inside req.body.data, not directly in req.body
-    const data  = req.body;
+    const data = req.body.data || req.body;
 
     try {
         if (!data || !Array.isArray(data) || data.length === 0) {
             return res.status(400).json({ message: "Invalid or empty array provided" });
         }
 
-        console.log("Received data:", data); // Debug log
+        console.log("Processing lottery data:", data);
 
         // Calculate total bet amount
         const totalBet = data.reduce((sum, item) => sum + Number(item.taruhan), 0);
@@ -251,11 +355,12 @@ const setLottery = (req, res) => {
                             if (err) {
                                 return connection.rollback(() => {
                                     connection.release();
+                                    console.error("Balance update error:", err);
                                     res.status(500).json({ message: "Failed to update balance" });
                                 });
                             }
 
-                            // Create placeholders for each row
+                            // Create placeholders for batch insert
                             const placeholders = data.map(() => "(?, ?, ?)").join(", ");
                             const sql = `INSERT INTO tebakangka (tebakan, taruhan, user_id) VALUES ${placeholders}`;
 
@@ -276,18 +381,28 @@ const setLottery = (req, res) => {
                                     });
                                 }
 
-                                connection.commit(err => {
+                                // Get updated balance
+                                connection.query("SELECT saldo FROM user WHERE id = ?", [userId], (err, balanceResult) => {
                                     if (err) {
                                         return connection.rollback(() => {
                                             connection.release();
-                                            res.status(500).json({ message: "Transaction failed" });
+                                            res.status(500).json({ message: "Failed to get updated balance" });
                                         });
                                     }
 
-                                    connection.release();
-                                    res.status(200).json({
-                                        message: `Successfully inserted ${data.length} lottery guesses`,
-                                        newBalance: userBalance - totalBet
+                                    connection.commit(err => {
+                                        if (err) {
+                                            return connection.rollback(() => {
+                                                connection.release();
+                                                res.status(500).json({ message: "Transaction failed" });
+                                            });
+                                        }
+
+                                        connection.release();
+                                        res.status(200).json({
+                                            message: `Successfully inserted ${data.length} lottery guesses`,
+                                            newBalance: balanceResult[0].saldo
+                                        });
                                     });
                                 });
                             });

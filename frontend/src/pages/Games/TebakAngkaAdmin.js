@@ -1,6 +1,8 @@
 import React, {useEffect, useState} from "react";
 import {useGameStore} from "../../store/useGameStore";
 import {useAdminStore} from "../../store/useAdminStore";
+import {useAuthStore} from "../../store/useAuthStore";
+import {useDataStore} from "../../store/useDataStore";
 
 const formatUang = (value) => {
   if (!value) return "";
@@ -13,7 +15,10 @@ const TebakAngkaAdmin = () => {
   const [historyPemenang, setHistoryPemenang] = useState([]);
 
   const {getCurrentLottery, isLoadingLottery} = useGameStore()
-  const {setAngkaAsli, isSettingAngkaAsli} = useAdminStore()
+  const {setAngkaAsli, isSettingAngkaAsli, getTogelHistory, isLoading} = useAdminStore()
+  const {authUser, } = useAuthStore();
+  const {getUserBalance} = useDataStore()
+
 
   const [pemainList, setPemainList] = useState([
     // {
@@ -61,7 +66,29 @@ const TebakAngkaAdmin = () => {
       }
     };
 
+    const fetchHistory = async () => {
+        const data = await getTogelHistory();
+        if (data) {
+            setHistoryPemenang(data);
+        }
+    }
+
+    const fetchSaldo = async () => {
+      try {
+        if (authUser) {
+          const res = await getUserBalance();
+        } else {
+
+        }
+      } catch (error) {
+        console.error("Error fetching saldo:", error);
+      }
+    };
+
+    fetchSaldo();
+
     fetchLotteryData();
+    fetchHistory()
   }, [getCurrentLottery]);
 
   return (
@@ -134,30 +161,36 @@ const TebakAngkaAdmin = () => {
         </div>
 
         <h2 className="text-xl font-semibold mb-4">Riwayat Tebakangka</h2>
-        {isLoadingLottery ? (
+        {isLoading ? (
             <div className="py-8 text-center text-gray-400">
               <div
                   className="animate-spin inline-block w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full mb-2"></div>
               <p>Loading data...</p>
             </div>
         ) : (
-            pemainList && pemainList.length > 0 ? (
-                <table className="w-full text-left table-auto border-collapse">
+            historyPemenang && historyPemenang.length > 0 ? (
+                <table className="w-full text-center table-auto border-collapse">
                   <thead>
                   <tr className="text-indigo-400 border-b border-indigo-700">
                     <th className="py-2">Email</th>
                     <th>Username</th>
                     <th>Angka Tebakan</th>
+                    <th>Angka Asli</th>
                     <th>Taruhan</th>
+                    <th>Keterangan</th>
+                    <th>Saldo</th>
                   </tr>
                   </thead>
                   <tbody>
-                  {pemainList.map((pemain, i) => (
+                  {historyPemenang.map((pemain, i) => (
                       <tr key={i} className="border-t border-gray-700">
                         <td className="py-2">{pemain.email}</td>
                         <td>{pemain.username}</td>
                         <td className="text-center">{pemain.tebakan}</td>
-                        <td className="text-right">{formatUang(pemain.taruhan)} koin</td>
+                        <td className="text-center">{pemain.angka_asli}</td>
+                        <td className="text-center">{formatUang(pemain.taruhan)} koin</td>
+                        <td className="text-center">{pemain.tebakan === pemain.angka_asli ? "MENANG" : "KALAH"} </td>
+                        <td className="text-center">{pemain.tebakan === pemain.angka_asli ? `+${formatUang(pemain.taruhan * 9)}` : `-${formatUang(pemain.taruhan)}`} koin </td>
                       </tr>
                   ))}
                   </tbody>

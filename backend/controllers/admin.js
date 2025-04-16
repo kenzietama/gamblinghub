@@ -253,72 +253,205 @@ const getTebakAngka = (req, res) => {
     });
 }
 
+// const setAngkaAsli = (req, res) => {
+//     const {angkaAsli} = req.body;
+//
+//     try {
+//         const sql = "SELECT email, tebakan, taruhan FROM tebakangka INNER JOIN user ON tebakangka.user_id = user.id WHERE tebakan = ?";
+//         db.query(sql, [angkaAsli], (err, results) => {
+//             if (err) {
+//                 console.error("Database error:", err);
+//                 return res.status(500).json({ message: "Server error" });
+//             }
+//
+//             if (!results || results.length === 0) {
+//                 const sql4 = "INSERT INTO history_tebakangka (tebakan, taruhan, angkaAsli, user_id) " +
+//                     "SELECT tebakan, taruhan, ?, user_id FROM tebakangka";
+//                 db.query(sql4, [angkaAsli], (err, results) => {
+//                     if (err) {
+//                         console.error("Database error:", err);
+//                         return res.status(500).json({ message: "Server error4" });
+//                     }
+//                     // Success handling
+//
+//                     const sql5 = "DELETE FROM tebakangka";
+//                     db.query(sql5, (err, results) => {
+//                         if (err) {
+//                             console.error("Database error:", err);
+//                             return res.status(500).json({ message: "Server error5" });
+//                         }
+//
+//                         return res.status(200).json({ message: "Togel complete" });
+//                     });
+//                 });
+//             }
+//
+//             const sql2 = "UPDATE user SET saldo = saldo + ? WHERE email = ?";
+//             db.query(sql2, [results[0].taruhan * 10, results[0].email], (err, results) => {
+//                 if (err) {
+//                     console.error("Database error:", err);
+//                     return res.status(500).json({ message: "Server error2" });
+//                 }
+//
+//                 const sql3 = "UPDATE user SET saldo = saldo - ? WHERE role = 1";
+//                 db.query(sql3, [results[0].taruhan * 10], (err, results) => {
+//                     if (err) {
+//                         console.error("Database error:", err);
+//                         return res.status(500).json({ message: "Server error3" });
+//                     }
+//
+//                     if (results.affectedRows === 0) {
+//                         return res.status(404).json({ message: "No data found" });
+//                     }
+//                 });
+//             });
+//
+//
+//
+//             // if (results.affectedRows === 0) {
+//             //     return res.status(404).json({ message: "No data found" });
+//             // }
+//
+//             res.status(200).json({ message: "Angka asli updated successfully" });
+//         });
+//     } catch (e) {
+//         console.error("Error in setAngkaAsli function:", e);
+//         res.status(500).json({ message: "Server errorrrrr" });
+//     }
+// }
+
 const setAngkaAsli = (req, res) => {
-    const {angkaAsli} = req.body;
+    const { angkaAsli } = req.body;
 
     try {
-        const sql = "SELECT email, tebakan, taruhan FROM tebakangka INNER JOIN user ON tebakangka.user_id = user.id WHERE tebakan = ?";
-        db.query(sql, [angkaAsli], (err, results) => {
+        // Start a transaction for data consistency
+        db.getConnection((err, connection) => {
             if (err) {
-                console.error("Database error:", err);
-                return res.status(500).json({ message: "Server error" });
+                console.error("Connection error:", err);
+                return res.status(500).json({ message: "Database connection error" });
             }
 
-            if (!results || results.length === 0) {
-                const sql4 = "INSERT INTO history_tebakangka (tebakan, taruhan, angkaAsli, user_id) " +
-                    "SELECT tebakan, taruhan, ?, user_id FROM tebakangka";
-                db.query(sql4, [angkaAsli], (err, results) => {
-                    if (err) {
-                        console.error("Database error:", err);
-                        return res.status(500).json({ message: "Server error4" });
-                    }
-                    // Success handling
-
-                    const sql5 = "DELETE FROM tebakangka";
-                    db.query(sql5, (err, results) => {
-                        if (err) {
-                            console.error("Database error:", err);
-                            return res.status(500).json({ message: "Server error5" });
-                        }
-
-                        return res.status(200).json({ message: "Togel complete" });
-                    });
-                });
-            }
-
-            const sql2 = "UPDATE user SET saldo = saldo + ? WHERE email = ?";
-            db.query(sql2, [results[0].taruhan * 10, results[0].email], (err, results) => {
+            connection.beginTransaction(err => {
                 if (err) {
-                    console.error("Database error:", err);
-                    return res.status(500).json({ message: "Server error2" });
+                    connection.release();
+                    console.error("Transaction error:", err);
+                    return res.status(500).json({ message: "Database transaction error" });
                 }
 
-                const sql3 = "UPDATE user SET saldo = saldo - ? WHERE role = 1";
-                db.query(sql3, [results[0].taruhan * 10], (err, results) => {
+                // Step 1: Check if there are any matches
+                const sql1 = "SELECT email, tebakan, taruhan, user_id FROM tebakangka INNER JOIN user ON tebakangka.user_id = user.id WHERE tebakan = ?";
+                connection.query(sql1, [angkaAsli], (err, winners) => {
                     if (err) {
-                        console.error("Database error:", err);
-                        return res.status(500).json({ message: "Server error3" });
+                        return connection.rollback(() => {
+                            connection.release();
+                            console.error("Database error:", err);
+                            return res.status(500).json({ message: "Server error finding winners" });
+                        });
                     }
 
-                    if (results.affectedRows === 0) {
-                        return res.status(404).json({ message: "No data found" });
-                    }
+                    // Step 2: Create history records regardless of winners
+                    const sqlHistory = "INSERT INTO history_tebakangka (tebakan, taruhan, angka_asli, user_id) SELECT tebakan, taruhan, ?, user_id FROM tebakangka";
+                    connection.query(sqlHistory, [angkaAsli], (err) => {
+                        if (err) {
+                            return connection.rollback(() => {
+                                connection.release();
+                                console.error("Database error:", err);
+                                return res.status(500).json({ message: "Failed to create history records" });
+                            });
+                        }
+
+                        // Process winners if any
+                        if (winners && winners.length > 0) {
+                            // We have winners - update their balances
+                            const processWinners = () => {
+                                let processed = 0;
+                                let errors = false;
+
+                                winners.forEach(winner => {
+                                    const winAmount = winner.taruhan * 10; // 10x multiplier for winners
+
+                                    // Update winner's balance
+                                    const sqlUpdateWinner = "UPDATE user SET saldo = saldo + ? WHERE email = ?";
+                                    connection.query(sqlUpdateWinner, [winAmount, winner.email], (err) => {
+                                        if (err && !errors) {
+                                            errors = true;
+                                            return connection.rollback(() => {
+                                                connection.release();
+                                                console.error("Database error:", err);
+                                                return res.status(500).json({ message: "Failed to update winner's balance" });
+                                            });
+                                        }
+
+                                        // After processing all winners
+                                        processed++;
+                                        if (processed === winners.length && !errors) {
+                                            // Deduct total from admin accounts
+                                            const totalPayout = winners.reduce((sum, winner) => sum + (winner.taruhan * 10), 0);
+                                            const sqlUpdateAdmin = "UPDATE user SET saldo = saldo - ? WHERE role = 1";
+                                            connection.query(sqlUpdateAdmin, [totalPayout], (err) => {
+                                                if (err) {
+                                                    return connection.rollback(() => {
+                                                        connection.release();
+                                                        console.error("Database error:", err);
+                                                        return res.status(500).json({ message: "Failed to update admin balance" });
+                                                    });
+                                                }
+
+                                                // Clear tebakangka table
+                                                finishProcess();
+                                            });
+                                        }
+                                    });
+                                });
+                            };
+
+                            // Start processing winners
+                            processWinners();
+                        } else {
+                            // No winners found
+                            finishProcess();
+                        }
+
+                        // Common function to finish the process
+                        function finishProcess() {
+                            // Clear tebakangka table
+                            const sqlClear = "DELETE FROM tebakangka";
+                            connection.query(sqlClear, (err) => {
+                                if (err) {
+                                    return connection.rollback(() => {
+                                        connection.release();
+                                        console.error("Database error:", err);
+                                        return res.status(500).json({ message: "Failed to clear tebakangka table" });
+                                    });
+                                }
+
+                                // Commit transaction
+                                connection.commit(err => {
+                                    if (err) {
+                                        return connection.rollback(() => {
+                                            connection.release();
+                                            console.error("Commit error:", err);
+                                            return res.status(500).json({ message: "Transaction commit failed" });
+                                        });
+                                    }
+
+                                    connection.release();
+                                    return res.status(200).json({
+                                        message: "Lottery completed successfully",
+                                        winners: winners && winners.length > 0 ? winners.length : 0
+                                    });
+                                });
+                            });
+                        }
+                    });
                 });
             });
-
-
-
-            // if (results.affectedRows === 0) {
-            //     return res.status(404).json({ message: "No data found" });
-            // }
-
-            res.status(200).json({ message: "Angka asli updated successfully" });
         });
     } catch (e) {
         console.error("Error in setAngkaAsli function:", e);
-        res.status(500).json({ message: "Server errorrrrr" });
+        res.status(500).json({ message: "Unexpected server error" });
     }
-}
+};
 
 const getTogelHistory = (req, res) => {
     const sql = "SELECT email, username, tebakan, taruhan, angka_asli FROM history_tebakangka INNER JOIN user ON history_tebakangka.user_id = user.id";
@@ -345,5 +478,6 @@ module.exports = {
     restoreJackpot,
     deleteJackpot,
     getTebakAngka,
+    getTogelHistory,
     setAngkaAsli
 }

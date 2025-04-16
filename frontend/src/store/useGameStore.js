@@ -61,29 +61,29 @@ export const useGameStore = create((set, get) => ({
         }
     },
 
-    setLottery: async (data) => {
-        set({isUpdatingLottery: true})
+    setLottery: async (guesses) => {
+        set({ isUpdatingLottery: true });
+        console.log(guesses)
         try {
-            console.log(data)
-            await axiosInstance.post("/games/lottery", data)
-            toast.success("Nomer berhasil disimpan")
+            const response = await axiosInstance.post("/games/lottery", { data: guesses });
+            // Trigger balance update
+            set({ isUpdatingBalance: false });
+            return response.data;
         } catch (error) {
-            toast.error(error.response.data.message)
+            console.error("Error setting lottery:", error);
+            throw error;
         } finally {
-            set({isUpdatingLottery: false})
+            set({ isUpdatingLottery: false });
         }
     },
 
     getUserLottery: async () => {
-        set({isLoadingLottery: true})
         try {
-            const res = await axiosInstance.get("/games/lottery")
-            return res.data;
+            const response = await axiosInstance.get("/games/lottery");
+            return response.data;
         } catch (error) {
-            console.error("Error fetching user lottery:", error);
-            // toast.error(error.response.data.message)
-        } finally {
-            set({isLoadingLottery: false})
+            // console.error("Error getting user lottery:", error);
+            // throw error;
         }
     },
 

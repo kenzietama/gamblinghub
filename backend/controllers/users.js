@@ -286,11 +286,30 @@ const getUserBalance = async (req, res) => {
     }
 }
 
+const getUserTogelHistory = (req, res) => {
+    const userId = req.user.id
+
+    const sql = "SELECT email, username, tebakan, taruhan, angka_asli FROM history_tebakangka INNER JOIN user ON history_tebakangka.user_id = user.id WHERE user.id = ?";
+    db.query(sql, [userId],(err, results) => {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({ message: "Server error" });
+        }
+
+        if (!results || results.length === 0) {
+            return res.status(200).json({ message: "No data found" });
+        }
+
+        res.status(200).json(results);
+    });
+}
+
 module.exports = {
     getUsers,
     deleteUser,
     updateProfile,
     updatePassword,
     getUser,
-    getUserBalance
+    getUserBalance,
+    getUserTogelHistory
 }

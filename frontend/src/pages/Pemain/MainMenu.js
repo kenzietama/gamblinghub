@@ -11,12 +11,12 @@ const MainMenu = () => {
       path: "/jackpot",
       color: "from-yellow-400 to-yellow-600",
     },
-    // {
-    //   name: "🔢 Tebak Angka",
-    //   desc: "Tebak angka 4 digit dan menangkan hadiah!",
-    //   path: "/tebak-angka",
-    //   color: "from-indigo-400 to-indigo-600",
-    // },
+    {
+      name: "🔢 Tebak Angka",
+      desc: "Tebak angka 4 digit dan menangkan hadiah!",
+      path: "/tebak-angka",
+      color: "from-indigo-400 to-indigo-600",
+    },
     {
       name: "🎲 Lempar Dadu",
       desc: "Lempar dadu dan menang bila jumlahnya besar!",
