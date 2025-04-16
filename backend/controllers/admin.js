@@ -128,7 +128,7 @@ const getJackpotHistory = async(req, res) => {
 
 const setJackpot = (req,res) => {
     const role = req.user.role;
-    const {data} = req.body.data;
+    const {data} = req.body;
 
     if (role !== 1) {
         return res.status(403).json({ message: "Forbidden: You don't have permission to set jackpot" });

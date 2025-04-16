@@ -72,6 +72,7 @@ const Navbar = () => {
                       <Link to="/dashboard" className="hover:text-indigo-400 transition">Dashboard</Link>
                       <Link to="/main-menu-admin" className="hover:text-indigo-400 transition">Games Admin</Link>
                       <Link to="/daftarpemain" className="hover:text-indigo-400 transition">Daftar Pemain</Link>
+                      <Link to="/profil" className="hover:text-indigo-400 transition">Profil</Link>
                   </>
               ) : (
                   <>

@@ -66,7 +66,7 @@ const ProfileEdit = () => {
               />
             </div>
 
-            {/* <div>
+             <div>
               <button
                 type="button"
                 onClick={() => navigate("/ubahpassword")}
@@ -74,7 +74,7 @@ const ProfileEdit = () => {
               >
                 Ubah Password
               </button>
-            </div> */}
+            </div>
 
             <div className="flex flex-col sm:flex-row justify-between gap-4 pt-6">
               <button
