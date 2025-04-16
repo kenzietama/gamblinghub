@@ -11,12 +11,12 @@ const MainMenu = () => {
       path: "/jackpotadmin",
       color: "from-yellow-400 to-yellow-600",
     },
-    {
-      name: "🔢 Tebak Angka",
-      desc: "Masukkan angka asli dan tentukan pemenang!",
-      path: "/tebak-angkaadmin",
-      color: "from-indigo-400 to-indigo-600",
-    },
+    // {
+    //   name: "🔢 Tebak Angka",
+    //   desc: "Masukkan angka asli dan tentukan pemenang!",
+    //   path: "/tebak-angkaadmin",
+    //   color: "from-indigo-400 to-indigo-600",
+    // },
   ];
 
   return (

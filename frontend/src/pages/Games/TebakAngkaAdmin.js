@@ -169,44 +169,6 @@ const TebakAngkaAdmin = () => {
             )
         )}
 
-        {/*{historyPemenang.length > 0 && (*/}
-        {/*    <div className="max-w-3xl mx-auto bg-gray-800 mt-8 p-4 rounded-lg">*/}
-        {/*      <h2 className="text-xl font-semibold mb-4">Riwayat</h2>*/}
-        {/*      <div className="overflow-x-auto">*/}
-        {/*        <table className="w-full table-fixed border-collapse text-sm">*/}
-        {/*          <thead>*/}
-        {/*          <tr className="text-green-400 border-b border-green-700 bg-gray-700">*/}
-        {/*            <th className="w-10 py-2 text-center">#</th>*/}
-        {/*            <th className="w-1/5 px-2 text-left">Email</th>*/}
-        {/*            <th className="w-1/6 px-2 text-left">Username</th>*/}
-        {/*            <th className="w-1/6 px-2 text-center">Tebakan</th>*/}
-        {/*            <th className="w-1/6 px-2 text-right">Taruhan</th>*/}
-        {/*            <th className="w-1/6 px-2 text-right">Reward</th>*/}
-        {/*            <th className="w-1/6 px-2 text-center">Angka Rahasia</th>*/}
-        {/*          </tr>*/}
-        {/*          </thead>*/}
-        {/*          <tbody>*/}
-        {/*          {historyPemenang.map((pemenang, i) => (*/}
-        {/*              <tr*/}
-        {/*                  key={i}*/}
-        {/*                  className={i % 2 === 0 ? "bg-gray-900" : "bg-gray-800"}*/}
-        {/*              >*/}
-        {/*                <td className="py-2 text-center">{i + 1}</td>*/}
-        {/*                <td className="px-2">{pemenang.email}</td>*/}
-        {/*                <td className="px-2">{pemenang.username}</td>*/}
-        {/*                <td className="px-2 text-center">{pemenang.tebakan}</td>*/}
-        {/*                <td className="px-2 text-right">{formatUang(pemenang.taruhan)} koin</td>*/}
-        {/*                <td className="px-2 text-right text-yellow-300 font-bold">*/}
-        {/*                  +{formatUang(pemenang.reward)} koin*/}
-        {/*                </td>*/}
-        {/*                <td className="px-2 text-center text-green-400">{pemenang.angkaRahasia}</td>*/}
-        {/*              </tr>*/}
-        {/*          ))}*/}
-        {/*          </tbody>*/}
-        {/*        </table>*/}
-        {/*      </div>*/}
-        {/*    </div>*/}
-        {/*)}*/}
       </div>
   );
 };
