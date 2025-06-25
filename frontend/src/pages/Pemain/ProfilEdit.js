@@ -66,6 +66,17 @@ const ProfileEdit = () => {
               />
             </div>
 
+            <div>
+              <label className="block mb-1 text-sm text-gray-400">Masukkan password</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full p-3 rounded-xl bg-[#2a2523] text-white border border-yellow-800 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              />
+            </div>
+
              <div>
               <button
                 type="button"

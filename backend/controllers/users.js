@@ -79,7 +79,7 @@ const deleteUser = async (req, res) => {
 };
 
 const updateProfile = async (req, res) => {
-    const {username, email} = req.body;
+    const {username, email, password} = req.body;
     const userId = req.user.id;
     const user = req.user;
 
@@ -104,6 +104,18 @@ const updateProfile = async (req, res) => {
                 }
             }
         })
+
+        const sql3 = "SELECT * FROM user WHERE id = ?";
+        db.query(sql3, [userId], (err, results2) => {
+            if (err) {
+                return res.status(500).json({message: "Database error during registration"});
+            }
+
+            const isPasswordCorrect = bcrypt.compareSync(String(password), results2[0].password);
+            if (!isPasswordCorrect) {
+                return res.status(401).json({ message: "Password lama salah." });
+            }
+
 
         const sql = "UPDATE user SET username = ?, email = ? WHERE id = ?";
         db.query(sql, [username, email, userId], (err, result) => {
@@ -161,6 +173,7 @@ const updateProfile = async (req, res) => {
 
             res.status(200).json({ message: "Profile updated successfully" });
         });
+        })
     } catch (error) {
         console.error("Unexpected error in updateProfile:", error);
         return res.status(500).json({ message: "Internal server error" });
